@@ -42,7 +42,7 @@ function App() {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/auth/callback" element={<CallbackPage />} />
             <Route
-              path="/pedido-de-pagamento"
+              path="/faturacao-de-servicos"
               element={
                 <ProtectedRoute>
                   <DashboardLayout>
@@ -57,8 +57,8 @@ function App() {
               path="/workflow-diagram"
               element={<WorkflowDiagramPage />}
             />
-            <Route path="/" element={<Navigate to="/pedido-de-pagamento" />} />
-            <Route path="*" element={<Navigate to="/pedido-de-pagamento" replace />} />
+            <Route path="/" element={<Navigate to="/faturacao-de-servicos" />} />
+            <Route path="*" element={<Navigate to="/faturacao-de-servicos" replace />} />
           </Routes>
         </Router>
       </AuthProvider>

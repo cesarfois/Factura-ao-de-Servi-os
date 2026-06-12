@@ -32,7 +32,7 @@ const LoginForm = () => {
                 sessionStorage.removeItem('redirect_after_login');
                 window.location.href = redirectPath;
             } else {
-                window.location.href = '/pedido-de-pagamento';
+                window.location.href = '/faturacao-de-servicos';
             }
         } catch (err) {
             setError(err.response?.data?.error || err.message || 'Falha ao conectar via Conta de Serviço.');

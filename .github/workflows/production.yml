@@ -83,6 +83,11 @@ jobs:
             git fetch origin main
             git reset --hard origin/main
             
+            # Copiar arquivo .env do container original para herdar credenciais e configurações
+            if [ -f "/app/pedido-de-pagamento/.env" ]; then
+              cp /app/pedido-de-pagamento/.env /app/faturacao-de-servicos/.env
+            fi
+            
             # Build e restart dos containers via docker-compose
             docker compose down || true
             docker compose up -d --build
