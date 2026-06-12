@@ -320,7 +320,7 @@ const WorkflowHistoryPage = () => {
     
     // Cabinet/Document Type Selection States
     const [typeSuggestions, setTypeSuggestions] = useState([]);
-    const [selectedDocType, setSelectedDocType] = useState('Pedido de pagamento');
+    const [selectedDocType, setSelectedDocType] = useState('Encomendas Serviços');
     
     // Date filter range state (default to 30 days ago to today)
     const getTodayString = () => new Date().toISOString().split('T')[0];
@@ -385,11 +385,10 @@ const WorkflowHistoryPage = () => {
                 const oid = await docuwareService.getOrganization();
                 if (oid) setOrgId(oid);
 
-                // Force cabinet to "22 - Pedido de Pagamento" UUID
+                // Force cabinet to "01 Comercial"
                 const targetCab = cabList.find(c => 
-                    (c.Name || '').includes('22') || 
-                    (c.Name || '').toLowerCase().includes('pagamento') ||
-                    (c.Name || '').toLowerCase().includes('payment')
+                    (c.Name || '').includes('01') || 
+                    (c.Name || '').toLowerCase().includes('comercial')
                 );
                 const targetCabinetId = targetCab ? targetCab.Id : '02a63cd1-672e-4c56-ad4b-bf2a7395cfd3';
                 setSelectedCabinet(targetCabinetId);
@@ -468,9 +467,9 @@ const WorkflowHistoryPage = () => {
                 setDetectedDateField(detectedDateField);
                 setSuggestions({}); // Reset suggestions
 
-                // Keep selectedDocType fixed to "Pedido de pagamento"
-                setSelectedDocType('Pedido de pagamento');
-                setTypeSuggestions(['Pedido de pagamento']);
+                // Keep selectedDocType fixed to "Encomendas Serviços"
+                setSelectedDocType('Encomendas Serviços');
+                setTypeSuggestions(['Encomendas Serviços']);
             } catch (err) {
                 console.error("Failed to load cabinet metadata", err);
             }
@@ -1689,8 +1688,32 @@ const WorkflowHistoryPage = () => {
             <div className="card bg-white border border-slate-200 border-l-[6px] border-l-[#4f46e5] shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-2xl">
                 <div className="card-body p-6">
                     <form onSubmit={handleSearchDocuments} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                        {/* Date Range Inputs Row */}
+                        {/* Date Range & Fixed Filters Inputs Row */}
                         <div className="flex flex-wrap items-center gap-6 flex-1">
+                            {/* Armário Fixo */}
+                            <div className="flex items-center gap-2">
+                                <span className="text-sm font-semibold text-slate-600 whitespace-nowrap">Armário:</span>
+                                <input
+                                    type="text"
+                                    className="input input-bordered input-md text-sm border-slate-200 bg-slate-50 text-slate-500 font-medium rounded-lg px-3 py-2 w-[180px] cursor-not-allowed"
+                                    value="01 Comercial"
+                                    readOnly
+                                    disabled
+                                />
+                            </div>
+
+                            {/* Tipo Documental Fixo */}
+                            <div className="flex items-center gap-2">
+                                <span className="text-sm font-semibold text-slate-600 whitespace-nowrap">Tipo Documental:</span>
+                                <input
+                                    type="text"
+                                    className="input input-bordered input-md text-sm border-slate-200 bg-slate-50 text-slate-500 font-medium rounded-lg px-3 py-2 w-[200px] cursor-not-allowed"
+                                    value="Encomendas Serviços"
+                                    readOnly
+                                    disabled
+                                />
+                            </div>
+
                             {/* Data Inicial */}
                             <div className="flex items-center gap-2">
                                 <span className="text-sm font-semibold text-slate-600 whitespace-nowrap">Data Inicial:</span>
