@@ -1693,25 +1693,27 @@ const WorkflowHistoryPage = () => {
                             {/* Armário Fixo */}
                             <div className="flex items-center gap-2">
                                 <span className="text-sm font-semibold text-slate-600 whitespace-nowrap">Armário:</span>
-                                <input
-                                    type="text"
-                                    className="input input-bordered input-md text-sm border-slate-200 bg-slate-50 text-slate-500 font-medium rounded-lg px-3 py-2 w-[180px] cursor-not-allowed"
-                                    value="01 Comercial"
-                                    readOnly
+                                <select
+                                    className="select select-bordered select-md text-sm border-slate-200 bg-slate-50 text-slate-500 font-medium rounded-lg px-3 py-2 w-[180px] cursor-not-allowed"
                                     disabled
-                                />
+                                    value="01 Comercial"
+                                    onChange={() => {}}
+                                >
+                                    <option value="01 Comercial">01 Comercial</option>
+                                </select>
                             </div>
 
                             {/* Tipo Documental Fixo */}
                             <div className="flex items-center gap-2">
                                 <span className="text-sm font-semibold text-slate-600 whitespace-nowrap">Tipo Documental:</span>
-                                <input
-                                    type="text"
-                                    className="input input-bordered input-md text-sm border-slate-200 bg-slate-50 text-slate-500 font-medium rounded-lg px-3 py-2 w-[200px] cursor-not-allowed"
-                                    value="Encomendas Serviços"
-                                    readOnly
+                                <select
+                                    className="select select-bordered select-md text-sm border-slate-200 bg-slate-50 text-slate-500 font-medium rounded-lg px-3 py-2 w-[220px] cursor-not-allowed"
                                     disabled
-                                />
+                                    value="Encomendas Serviços"
+                                    onChange={() => {}}
+                                >
+                                    <option value="Encomendas Serviços">Encomendas Serviços</option>
+                                </select>
                             </div>
 
                             {/* Data Inicial */}
