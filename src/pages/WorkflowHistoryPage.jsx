@@ -1694,8 +1694,7 @@ const WorkflowHistoryPage = () => {
                             <div className="flex items-center gap-2">
                                 <span className="text-sm font-semibold text-slate-600 whitespace-nowrap">Armário:</span>
                                 <select
-                                    className="select select-bordered select-md text-sm border-slate-200 bg-slate-50 text-slate-500 font-medium rounded-lg px-3 py-2 w-[180px] cursor-not-allowed"
-                                    disabled
+                                    className="select select-bordered select-md text-sm border-slate-200 bg-white text-slate-700 font-medium rounded-lg px-3 py-2 w-[180px]"
                                     value="01 Comercial"
                                     onChange={() => {}}
                                 >
@@ -1707,8 +1706,7 @@ const WorkflowHistoryPage = () => {
                             <div className="flex items-center gap-2">
                                 <span className="text-sm font-semibold text-slate-600 whitespace-nowrap">Tipo Documental:</span>
                                 <select
-                                    className="select select-bordered select-md text-sm border-slate-200 bg-slate-50 text-slate-500 font-medium rounded-lg px-3 py-2 w-[220px] cursor-not-allowed"
-                                    disabled
+                                    className="select select-bordered select-md text-sm border-slate-200 bg-white text-slate-700 font-medium rounded-lg px-3 py-2 w-[220px]"
                                     value="Encomendas Serviços"
                                     onChange={() => {}}
                                 >
