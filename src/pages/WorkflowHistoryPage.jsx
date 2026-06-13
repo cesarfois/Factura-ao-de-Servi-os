@@ -1712,9 +1712,10 @@ const WorkflowHistoryPage = () => {
                             <div className="flex items-center gap-2">
                                 <span className="text-sm font-semibold text-slate-600 whitespace-nowrap">Armário:</span>
                                 <select
-                                    className="select select-bordered select-md text-sm border-slate-200 bg-white text-slate-700 font-medium rounded-lg px-3 py-2 w-[180px]"
+                                    className="select select-bordered select-md text-sm border-slate-200 bg-slate-50 text-slate-500 font-medium rounded-lg px-3 py-2 w-[180px] cursor-not-allowed"
                                     value={selectedCabinet}
                                     onChange={(e) => setSelectedCabinet(e.target.value)}
+                                    disabled
                                 >
                                     {cabinets.map(cab => (
                                         <option key={cab.Id} value={cab.Id}>{cab.Name}</option>
@@ -1726,9 +1727,10 @@ const WorkflowHistoryPage = () => {
                             <div className="flex items-center gap-2">
                                 <span className="text-sm font-semibold text-slate-600 whitespace-nowrap">Tipo Documental:</span>
                                 <select
-                                    className="select select-bordered select-md text-sm border-slate-200 bg-white text-slate-700 font-medium rounded-lg px-3 py-2 w-[220px]"
+                                    className="select select-bordered select-md text-sm border-slate-200 bg-slate-50 text-slate-500 font-medium rounded-lg px-3 py-2 w-[220px] cursor-not-allowed"
                                     value={selectedDocType}
                                     onChange={(e) => setSelectedDocType(e.target.value)}
+                                    disabled
                                 >
                                     {typeSuggestions.map(type => (
                                         <option key={type} value={type}>{type}</option>
