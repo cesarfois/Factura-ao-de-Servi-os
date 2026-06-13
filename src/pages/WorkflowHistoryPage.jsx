@@ -2100,7 +2100,7 @@ const WorkflowHistoryPage = () => {
                                                 <th className="py-3 px-2 text-left cursor-pointer hover:bg-slate-100 select-none transition-colors" onClick={() => handleSort('docNum')}>
                                                     <div className="flex items-center justify-between gap-1">
                                                         <span>Projeto {sortField === 'docNum' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}</span>
-                                                        <div className="dropdown dropdown-bottom dropdown-end" onClick={(e) => e.stopPropagation()}>
+                                                        <div className="dropdown dropdown-bottom" onClick={(e) => e.stopPropagation()}>
                                                             <label tabIndex={0} className="btn btn-ghost btn-xs px-1 hover:bg-slate-200/60 rounded">
                                                                 <FaFilter className={`text-[9px] ${columnFilters.docNum.length > 0 ? 'text-indigo-600 font-bold' : 'text-slate-400'}`} />
                                                             </label>
@@ -2150,7 +2150,7 @@ const WorkflowHistoryPage = () => {
                                                 <th className="py-3 px-2 text-left cursor-pointer hover:bg-slate-100 select-none transition-colors" onClick={() => handleSort('activeTaskName')}>
                                                     <div className="flex items-center justify-between gap-1">
                                                         <span>Etapa Atual {sortField === 'activeTaskName' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}</span>
-                                                        <div className="dropdown dropdown-bottom dropdown-end" onClick={(e) => e.stopPropagation()}>
+                                                        <div className="dropdown dropdown-bottom" onClick={(e) => e.stopPropagation()}>
                                                             <label tabIndex={0} className="btn btn-ghost btn-xs px-1 hover:bg-slate-200/60 rounded">
                                                                 <FaFilter className={`text-[9px] ${columnFilters.activeTaskName.length > 0 ? 'text-indigo-600 font-bold' : 'text-slate-400'}`} />
                                                             </label>
@@ -2193,7 +2193,7 @@ const WorkflowHistoryPage = () => {
                                                 <th className="py-3 px-2 text-left cursor-pointer hover:bg-slate-100 select-none transition-colors" onClick={() => handleSort('responsible')}>
                                                     <div className="flex items-center justify-between gap-1">
                                                         <span>Responsável {sortField === 'responsible' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}</span>
-                                                        <div className="dropdown dropdown-bottom dropdown-end" onClick={(e) => e.stopPropagation()}>
+                                                        <div className="dropdown dropdown-bottom" onClick={(e) => e.stopPropagation()}>
                                                             <label tabIndex={0} className="btn btn-ghost btn-xs px-1 hover:bg-slate-200/60 rounded">
                                                                 <FaFilter className={`text-[9px] ${columnFilters.responsible.length > 0 ? 'text-indigo-600 font-bold' : 'text-slate-400'}`} />
                                                             </label>
