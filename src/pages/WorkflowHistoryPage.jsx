@@ -710,6 +710,15 @@ const WorkflowHistoryPage = () => {
                 };
                 valA = getVal(a);
                 valB = getVal(b);
+            } else if (sortField === 'encPrimavera') {
+                valA = getDocFieldValue(a, 'NO_PRIMAVERA_ENC_CLIENTE') || '';
+                valB = getDocFieldValue(b, 'NO_PRIMAVERA_ENC_CLIENTE') || '';
+            } else if (sortField === 'unidadeNegocio') {
+                valA = getDocFieldValue(a, 'UNIDADE_DE_NEG_CIO') || '';
+                valB = getDocFieldValue(b, 'UNIDADE_DE_NEG_CIO') || '';
+            } else if (sortField === 'codEmpresa') {
+                valA = getDocFieldValue(a, 'CODIGO_DE_EMPRESA') || '';
+                valB = getDocFieldValue(b, 'CODIGO_DE_EMPRESA') || '';
             } else {
                 return 0;
             }
@@ -1999,6 +2008,15 @@ const WorkflowHistoryPage = () => {
                                                 <th className="py-3 px-2 text-left cursor-pointer hover:bg-slate-100 select-none transition-colors" onClick={() => handleSort('timeStoppedMs')}>
                                                     Tempo Parado {sortField === 'timeStoppedMs' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}
                                                 </th>
+                                                <th className="py-3 px-2 text-left cursor-pointer hover:bg-slate-100 select-none transition-colors" onClick={() => handleSort('encPrimavera')}>
+                                                    Enc. Primavera {sortField === 'encPrimavera' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}
+                                                </th>
+                                                <th className="py-3 px-2 text-left cursor-pointer hover:bg-slate-100 select-none transition-colors" onClick={() => handleSort('unidadeNegocio')}>
+                                                    Unidade Negócio {sortField === 'unidadeNegocio' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}
+                                                </th>
+                                                <th className="py-3 px-2 text-left cursor-pointer hover:bg-slate-100 select-none transition-colors" onClick={() => handleSort('codEmpresa')}>
+                                                    Cód. Empresa {sortField === 'codEmpresa' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}
+                                                </th>
 
                                                 <th className="py-3 px-1 text-center w-[38px]" title="Histórico">
                                                     <FaHistory className="mx-auto text-slate-400" />
@@ -2095,22 +2113,35 @@ const WorkflowHistoryPage = () => {
                                                         </td>
 
                                                         {/* Time Stopped */}
-                                                        <td className="py-3 px-2">
-                                                            {isProgLoading ? (
-                                                                <span className="inline-block w-12 h-3 bg-slate-100 animate-pulse rounded"></span>
-                                                            ) : !prog.isFinished && prog.timeStoppedMs > 0 ? (
-                                                                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                                                                    isDelayed 
-                                                                        ? 'bg-rose-50 text-rose-600 border border-rose-100 animate-pulse' 
-                                                                        : 'bg-slate-100 text-slate-600'
-                                                                }`}>
-                                                                    <FaClock className="text-[9px]" />
-                                                                    {WorkflowHistoryAnalyzer.formatDuration(prog.timeStoppedMs)}
-                                                                </span>
-                                                            ) : '-'}
-                                                        </td>
+                                                         <td className="py-3 px-2">
+                                                             {isProgLoading ? (
+                                                                 <span className="inline-block w-12 h-3 bg-slate-100 animate-pulse rounded"></span>
+                                                             ) : !prog.isFinished && prog.timeStoppedMs > 0 ? (
+                                                                 <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                                                     isDelayed 
+                                                                         ? 'bg-rose-50 text-rose-600 border border-rose-100 animate-pulse' 
+                                                                         : 'bg-slate-100 text-slate-600'
+                                                                 }`}>
+                                                                     <FaClock className="text-[9px]" />
+                                                                     {WorkflowHistoryAnalyzer.formatDuration(prog.timeStoppedMs)}
+                                                                 </span>
+                                                             ) : '-'}
+                                                         </td>
 
+                                                         {/* Enc. Primavera */}
+                                                         <td className="py-3 px-2 text-slate-600 text-xs font-mono">
+                                                             {getDocFieldValue(doc, 'NO_PRIMAVERA_ENC_CLIENTE') || '-'}
+                                                         </td>
 
+                                                         {/* Unidade Negócio */}
+                                                         <td className="py-3 px-2 text-slate-600 text-xs truncate max-w-[120px]" title={getDocFieldValue(doc, 'UNIDADE_DE_NEG_CIO') || '-'}>
+                                                             {getDocFieldValue(doc, 'UNIDADE_DE_NEG_CIO') || '-'}
+                                                         </td>
+
+                                                         {/* Cód. Empresa */}
+                                                         <td className="py-3 px-2 text-slate-600 text-xs truncate max-w-[120px]" title={getDocFieldValue(doc, 'CODIGO_DE_EMPRESA') || '-'}>
+                                                             {getDocFieldValue(doc, 'CODIGO_DE_EMPRESA') || '-'}
+                                                         </td>
 
                                                         {/* History */}
                                                         <td className="py-3 px-0.5 text-center w-[38px]">
