@@ -467,9 +467,27 @@ const WorkflowHistoryPage = () => {
                 setDetectedDateField(detectedDateField);
                 setSuggestions({}); // Reset suggestions
 
-                // Keep selectedDocType fixed to "Encomendas Serviços"
-                setSelectedDocType('Encomendas Serviços');
-                setTypeSuggestions(['Encomendas Serviços']);
+                if (detectedTypeField) {
+                    try {
+                        const values = await docuwareService.getSelectList(selectedCabinet, detectedTypeField.DBFieldName || detectedTypeField.FieldName);
+                        const sortedValues = values.sort((a, b) =>
+                            String(a).localeCompare(String(b), undefined, { numeric: true, sensitivity: 'base' })
+                        );
+                        setTypeSuggestions(sortedValues);
+                        if (sortedValues.includes('Encomendas Serviços')) {
+                            setSelectedDocType('Encomendas Serviços');
+                        } else if (sortedValues.length > 0) {
+                            setSelectedDocType(sortedValues[0]);
+                        }
+                    } catch (err) {
+                        console.error('Error fetching document type list:', err);
+                        setSelectedDocType('Encomendas Serviços');
+                        setTypeSuggestions(['Encomendas Serviços']);
+                    }
+                } else {
+                    setSelectedDocType('Encomendas Serviços');
+                    setTypeSuggestions(['Encomendas Serviços']);
+                }
             } catch (err) {
                 console.error("Failed to load cabinet metadata", err);
             }
@@ -1690,27 +1708,31 @@ const WorkflowHistoryPage = () => {
                     <form onSubmit={handleSearchDocuments} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         {/* Date Range & Fixed Filters Inputs Row */}
                         <div className="flex flex-wrap items-center gap-6 flex-1">
-                            {/* Armário Fixo */}
+                            {/* Armário */}
                             <div className="flex items-center gap-2">
                                 <span className="text-sm font-semibold text-slate-600 whitespace-nowrap">Armário:</span>
                                 <select
                                     className="select select-bordered select-md text-sm border-slate-200 bg-white text-slate-700 font-medium rounded-lg px-3 py-2 w-[180px]"
-                                    value="01 Comercial"
-                                    onChange={() => {}}
+                                    value={selectedCabinet}
+                                    onChange={(e) => setSelectedCabinet(e.target.value)}
                                 >
-                                    <option value="01 Comercial">01 Comercial</option>
+                                    {cabinets.map(cab => (
+                                        <option key={cab.Id} value={cab.Id}>{cab.Name}</option>
+                                    ))}
                                 </select>
                             </div>
 
-                            {/* Tipo Documental Fixo */}
+                            {/* Tipo Documental */}
                             <div className="flex items-center gap-2">
                                 <span className="text-sm font-semibold text-slate-600 whitespace-nowrap">Tipo Documental:</span>
                                 <select
                                     className="select select-bordered select-md text-sm border-slate-200 bg-white text-slate-700 font-medium rounded-lg px-3 py-2 w-[220px]"
-                                    value="Encomendas Serviços"
-                                    onChange={() => {}}
+                                    value={selectedDocType}
+                                    onChange={(e) => setSelectedDocType(e.target.value)}
                                 >
-                                    <option value="Encomendas Serviços">Encomendas Serviços</option>
+                                    {typeSuggestions.map(type => (
+                                        <option key={type} value={type}>{type}</option>
+                                    ))}
                                 </select>
                             </div>
 
