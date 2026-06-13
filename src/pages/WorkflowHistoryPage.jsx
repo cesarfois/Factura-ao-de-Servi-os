@@ -381,6 +381,14 @@ const WorkflowHistoryPage = () => {
         encPrimavera: [],
         unidadeNegocio: []
     });
+    const [columnSearchQueries, setColumnSearchQueries] = useState({
+        docNum: '',
+        activeTaskName: '',
+        responsible: '',
+        codEmpresa: '',
+        encPrimavera: '',
+        unidadeNegocio: ''
+    });
     
     // Document Grid / List States
     const [documents, setDocuments] = useState([]);
@@ -1368,6 +1376,14 @@ const WorkflowHistoryPage = () => {
             encPrimavera: [],
             unidadeNegocio: []
         });
+        setColumnSearchQueries({
+            docNum: '',
+            activeTaskName: '',
+            responsible: '',
+            codEmpresa: '',
+            encPrimavera: '',
+            unidadeNegocio: ''
+        });
 
         try {
             const queryFilters = [];
@@ -2088,24 +2104,38 @@ const WorkflowHistoryPage = () => {
                                                             <label tabIndex={0} className="btn btn-ghost btn-xs px-1 hover:bg-slate-200/60 rounded">
                                                                 <FaFilter className={`text-[9px] ${columnFilters.docNum.length > 0 ? 'text-indigo-600 font-bold' : 'text-slate-400'}`} />
                                                             </label>
-                                                            <ul tabIndex={0} className="dropdown-content menu p-3 shadow-lg bg-white border border-slate-200 rounded-xl w-60 z-[100] text-xs max-h-64 overflow-y-auto normal-case font-normal text-slate-700">
+                                                            <ul tabIndex={0} className="dropdown-content menu p-3 shadow-lg bg-white border border-slate-200 rounded-xl w-60 z-[100] text-xs normal-case font-normal text-slate-700">
                                                                 <div className="font-bold text-slate-500 mb-2 border-b pb-1 flex justify-between items-center">
                                                                     <span>Filtrar Projeto</span>
                                                                     {columnFilters.docNum.length > 0 && (
                                                                         <button className="text-[10px] text-indigo-600 hover:underline" onClick={() => handleClearColumnFilter('docNum')}>Limpar</button>
                                                                     )}
                                                                 </div>
-                                                                {getUniqueColumnValues('docNum').map(val => (
-                                                                    <label key={val} className="flex items-center gap-2 py-1.5 hover:bg-slate-50 rounded cursor-pointer px-1">
-                                                                        <input
-                                                                            type="checkbox"
-                                                                            className="checkbox checkbox-xs checkbox-primary"
-                                                                            checked={columnFilters.docNum.includes(val)}
-                                                                            onChange={() => handleToggleColumnFilter('docNum', val)}
-                                                                        />
-                                                                        <span className="truncate">{val}</span>
-                                                                    </label>
-                                                                ))}
+                                                                <input
+                                                                    type="text"
+                                                                    placeholder="Buscar..."
+                                                                    className="input input-xs input-bordered w-full mb-2 bg-white text-slate-800 text-[11px] font-normal"
+                                                                    value={columnSearchQueries.docNum}
+                                                                    onChange={(e) => setColumnSearchQueries(prev => ({ ...prev, docNum: e.target.value }))}
+                                                                    onClick={(e) => e.stopPropagation()}
+                                                                />
+                                                                <div className="max-h-48 overflow-y-auto w-full">
+                                                                    {getUniqueColumnValues('docNum')
+                                                                        .filter(val => String(val).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(
+                                                                            (columnSearchQueries.docNum || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+                                                                        ))
+                                                                        .map(val => (
+                                                                            <label key={val} className="flex items-center gap-2 py-1.5 hover:bg-slate-50 rounded cursor-pointer px-1">
+                                                                                <input
+                                                                                    type="checkbox"
+                                                                                    className="checkbox checkbox-xs checkbox-primary"
+                                                                                    checked={columnFilters.docNum.includes(val)}
+                                                                                    onChange={() => handleToggleColumnFilter('docNum', val)}
+                                                                                />
+                                                                                <span className="truncate">{val}</span>
+                                                                            </label>
+                                                                        ))}
+                                                                </div>
                                                             </ul>
                                                         </div>
                                                     </div>
@@ -2124,24 +2154,38 @@ const WorkflowHistoryPage = () => {
                                                             <label tabIndex={0} className="btn btn-ghost btn-xs px-1 hover:bg-slate-200/60 rounded">
                                                                 <FaFilter className={`text-[9px] ${columnFilters.activeTaskName.length > 0 ? 'text-indigo-600 font-bold' : 'text-slate-400'}`} />
                                                             </label>
-                                                            <ul tabIndex={0} className="dropdown-content menu p-3 shadow-lg bg-white border border-slate-200 rounded-xl w-60 z-[100] text-xs max-h-64 overflow-y-auto normal-case font-normal text-slate-700">
+                                                            <ul tabIndex={0} className="dropdown-content menu p-3 shadow-lg bg-white border border-slate-200 rounded-xl w-60 z-[100] text-xs normal-case font-normal text-slate-700">
                                                                 <div className="font-bold text-slate-500 mb-2 border-b pb-1 flex justify-between items-center">
                                                                     <span>Filtrar Etapa</span>
                                                                     {columnFilters.activeTaskName.length > 0 && (
                                                                         <button className="text-[10px] text-indigo-600 hover:underline" onClick={() => handleClearColumnFilter('activeTaskName')}>Limpar</button>
                                                                     )}
                                                                 </div>
-                                                                {getUniqueColumnValues('activeTaskName').map(val => (
-                                                                    <label key={val} className="flex items-center gap-2 py-1.5 hover:bg-slate-50 rounded cursor-pointer px-1">
-                                                                        <input
-                                                                            type="checkbox"
-                                                                            className="checkbox checkbox-xs checkbox-primary"
-                                                                            checked={columnFilters.activeTaskName.includes(val)}
-                                                                            onChange={() => handleToggleColumnFilter('activeTaskName', val)}
-                                                                        />
-                                                                        <span className="truncate">{val}</span>
-                                                                    </label>
-                                                                ))}
+                                                                <input
+                                                                    type="text"
+                                                                    placeholder="Buscar..."
+                                                                    className="input input-xs input-bordered w-full mb-2 bg-white text-slate-800 text-[11px] font-normal"
+                                                                    value={columnSearchQueries.activeTaskName}
+                                                                    onChange={(e) => setColumnSearchQueries(prev => ({ ...prev, activeTaskName: e.target.value }))}
+                                                                    onClick={(e) => e.stopPropagation()}
+                                                                />
+                                                                <div className="max-h-48 overflow-y-auto w-full">
+                                                                    {getUniqueColumnValues('activeTaskName')
+                                                                        .filter(val => String(val).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(
+                                                                            (columnSearchQueries.activeTaskName || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+                                                                        ))
+                                                                        .map(val => (
+                                                                            <label key={val} className="flex items-center gap-2 py-1.5 hover:bg-slate-50 rounded cursor-pointer px-1">
+                                                                                <input
+                                                                                    type="checkbox"
+                                                                                    className="checkbox checkbox-xs checkbox-primary"
+                                                                                    checked={columnFilters.activeTaskName.includes(val)}
+                                                                                    onChange={() => handleToggleColumnFilter('activeTaskName', val)}
+                                                                                />
+                                                                                <span className="truncate">{val}</span>
+                                                                            </label>
+                                                                        ))}
+                                                                </div>
                                                             </ul>
                                                         </div>
                                                     </div>
@@ -2153,24 +2197,38 @@ const WorkflowHistoryPage = () => {
                                                             <label tabIndex={0} className="btn btn-ghost btn-xs px-1 hover:bg-slate-200/60 rounded">
                                                                 <FaFilter className={`text-[9px] ${columnFilters.responsible.length > 0 ? 'text-indigo-600 font-bold' : 'text-slate-400'}`} />
                                                             </label>
-                                                            <ul tabIndex={0} className="dropdown-content menu p-3 shadow-lg bg-white border border-slate-200 rounded-xl w-60 z-[100] text-xs max-h-64 overflow-y-auto normal-case font-normal text-slate-700">
+                                                            <ul tabIndex={0} className="dropdown-content menu p-3 shadow-lg bg-white border border-slate-200 rounded-xl w-60 z-[100] text-xs normal-case font-normal text-slate-700">
                                                                 <div className="font-bold text-slate-500 mb-2 border-b pb-1 flex justify-between items-center">
                                                                     <span>Filtrar Responsável</span>
                                                                     {columnFilters.responsible.length > 0 && (
                                                                         <button className="text-[10px] text-indigo-600 hover:underline" onClick={() => handleClearColumnFilter('responsible')}>Limpar</button>
                                                                     )}
                                                                 </div>
-                                                                {getUniqueColumnValues('responsible').map(val => (
-                                                                    <label key={val} className="flex items-center gap-2 py-1.5 hover:bg-slate-50 rounded cursor-pointer px-1">
-                                                                        <input
-                                                                            type="checkbox"
-                                                                            className="checkbox checkbox-xs checkbox-primary"
-                                                                            checked={columnFilters.responsible.includes(val)}
-                                                                            onChange={() => handleToggleColumnFilter('responsible', val)}
-                                                                        />
-                                                                        <span className="truncate">{val}</span>
-                                                                    </label>
-                                                                ))}
+                                                                <input
+                                                                    type="text"
+                                                                    placeholder="Buscar..."
+                                                                    className="input input-xs input-bordered w-full mb-2 bg-white text-slate-800 text-[11px] font-normal"
+                                                                    value={columnSearchQueries.responsible}
+                                                                    onChange={(e) => setColumnSearchQueries(prev => ({ ...prev, responsible: e.target.value }))}
+                                                                    onClick={(e) => e.stopPropagation()}
+                                                                />
+                                                                <div className="max-h-48 overflow-y-auto w-full">
+                                                                    {getUniqueColumnValues('responsible')
+                                                                        .filter(val => String(val).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(
+                                                                            (columnSearchQueries.responsible || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+                                                                        ))
+                                                                        .map(val => (
+                                                                            <label key={val} className="flex items-center gap-2 py-1.5 hover:bg-slate-50 rounded cursor-pointer px-1">
+                                                                                <input
+                                                                                    type="checkbox"
+                                                                                    className="checkbox checkbox-xs checkbox-primary"
+                                                                                    checked={columnFilters.responsible.includes(val)}
+                                                                                    onChange={() => handleToggleColumnFilter('responsible', val)}
+                                                                                />
+                                                                                <span className="truncate">{val}</span>
+                                                                            </label>
+                                                                        ))}
+                                                                </div>
                                                             </ul>
                                                         </div>
                                                     </div>
@@ -2185,24 +2243,38 @@ const WorkflowHistoryPage = () => {
                                                             <label tabIndex={0} className="btn btn-ghost btn-xs px-1 hover:bg-slate-200/60 rounded">
                                                                 <FaFilter className={`text-[9px] ${columnFilters.codEmpresa.length > 0 ? 'text-indigo-600 font-bold' : 'text-slate-400'}`} />
                                                             </label>
-                                                            <ul tabIndex={0} className="dropdown-content menu p-3 shadow-lg bg-white border border-slate-200 rounded-xl w-60 z-[100] text-xs max-h-64 overflow-y-auto normal-case font-normal text-slate-700">
+                                                            <ul tabIndex={0} className="dropdown-content menu p-3 shadow-lg bg-white border border-slate-200 rounded-xl w-60 z-[100] text-xs normal-case font-normal text-slate-700">
                                                                 <div className="font-bold text-slate-500 mb-2 border-b pb-1 flex justify-between items-center">
                                                                     <span>Filtrar Nome Fiscal</span>
                                                                     {columnFilters.codEmpresa.length > 0 && (
                                                                         <button className="text-[10px] text-indigo-600 hover:underline" onClick={() => handleClearColumnFilter('codEmpresa')}>Limpar</button>
                                                                     )}
                                                                 </div>
-                                                                {getUniqueColumnValues('codEmpresa').map(val => (
-                                                                    <label key={val} className="flex items-center gap-2 py-1.5 hover:bg-slate-50 rounded cursor-pointer px-1">
-                                                                        <input
-                                                                            type="checkbox"
-                                                                            className="checkbox checkbox-xs checkbox-primary"
-                                                                            checked={columnFilters.codEmpresa.includes(val)}
-                                                                            onChange={() => handleToggleColumnFilter('codEmpresa', val)}
-                                                                        />
-                                                                        <span className="truncate">{val}</span>
-                                                                    </label>
-                                                                ))}
+                                                                <input
+                                                                    type="text"
+                                                                    placeholder="Buscar..."
+                                                                    className="input input-xs input-bordered w-full mb-2 bg-white text-slate-800 text-[11px] font-normal"
+                                                                    value={columnSearchQueries.codEmpresa}
+                                                                    onChange={(e) => setColumnSearchQueries(prev => ({ ...prev, codEmpresa: e.target.value }))}
+                                                                    onClick={(e) => e.stopPropagation()}
+                                                                />
+                                                                <div className="max-h-48 overflow-y-auto w-full">
+                                                                    {getUniqueColumnValues('codEmpresa')
+                                                                        .filter(val => String(val).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(
+                                                                            (columnSearchQueries.codEmpresa || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+                                                                        ))
+                                                                        .map(val => (
+                                                                            <label key={val} className="flex items-center gap-2 py-1.5 hover:bg-slate-50 rounded cursor-pointer px-1">
+                                                                                <input
+                                                                                    type="checkbox"
+                                                                                    className="checkbox checkbox-xs checkbox-primary"
+                                                                                    checked={columnFilters.codEmpresa.includes(val)}
+                                                                                    onChange={() => handleToggleColumnFilter('codEmpresa', val)}
+                                                                                />
+                                                                                <span className="truncate">{val}</span>
+                                                                            </label>
+                                                                        ))}
+                                                                </div>
                                                             </ul>
                                                         </div>
                                                     </div>
@@ -2214,24 +2286,38 @@ const WorkflowHistoryPage = () => {
                                                             <label tabIndex={0} className="btn btn-ghost btn-xs px-1 hover:bg-slate-200/60 rounded">
                                                                 <FaFilter className={`text-[9px] ${columnFilters.encPrimavera.length > 0 ? 'text-indigo-600 font-bold' : 'text-slate-400'}`} />
                                                             </label>
-                                                            <ul tabIndex={0} className="dropdown-content menu p-3 shadow-lg bg-white border border-slate-200 rounded-xl w-60 z-[100] text-xs max-h-64 overflow-y-auto normal-case font-normal text-slate-700">
+                                                            <ul tabIndex={0} className="dropdown-content menu p-3 shadow-lg bg-white border border-slate-200 rounded-xl w-60 z-[100] text-xs normal-case font-normal text-slate-700">
                                                                 <div className="font-bold text-slate-500 mb-2 border-b pb-1 flex justify-between items-center">
                                                                     <span>Filtrar Enc. Primavera</span>
                                                                     {columnFilters.encPrimavera.length > 0 && (
                                                                         <button className="text-[10px] text-indigo-600 hover:underline" onClick={() => handleClearColumnFilter('encPrimavera')}>Limpar</button>
                                                                     )}
                                                                 </div>
-                                                                {getUniqueColumnValues('encPrimavera').map(val => (
-                                                                    <label key={val} className="flex items-center gap-2 py-1.5 hover:bg-slate-50 rounded cursor-pointer px-1">
-                                                                        <input
-                                                                            type="checkbox"
-                                                                            className="checkbox checkbox-xs checkbox-primary"
-                                                                            checked={columnFilters.encPrimavera.includes(val)}
-                                                                            onChange={() => handleToggleColumnFilter('encPrimavera', val)}
-                                                                        />
-                                                                        <span className="truncate">{val}</span>
-                                                                    </label>
-                                                                ))}
+                                                                <input
+                                                                    type="text"
+                                                                    placeholder="Buscar..."
+                                                                    className="input input-xs input-bordered w-full mb-2 bg-white text-slate-800 text-[11px] font-normal"
+                                                                    value={columnSearchQueries.encPrimavera}
+                                                                    onChange={(e) => setColumnSearchQueries(prev => ({ ...prev, encPrimavera: e.target.value }))}
+                                                                    onClick={(e) => e.stopPropagation()}
+                                                                />
+                                                                <div className="max-h-48 overflow-y-auto w-full">
+                                                                    {getUniqueColumnValues('encPrimavera')
+                                                                        .filter(val => String(val).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(
+                                                                            (columnSearchQueries.encPrimavera || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+                                                                        ))
+                                                                        .map(val => (
+                                                                            <label key={val} className="flex items-center gap-2 py-1.5 hover:bg-slate-50 rounded cursor-pointer px-1">
+                                                                                <input
+                                                                                    type="checkbox"
+                                                                                    className="checkbox checkbox-xs checkbox-primary"
+                                                                                    checked={columnFilters.encPrimavera.includes(val)}
+                                                                                    onChange={() => handleToggleColumnFilter('encPrimavera', val)}
+                                                                                />
+                                                                                <span className="truncate">{val}</span>
+                                                                            </label>
+                                                                        ))}
+                                                                </div>
                                                             </ul>
                                                         </div>
                                                     </div>
@@ -2243,24 +2329,38 @@ const WorkflowHistoryPage = () => {
                                                             <label tabIndex={0} className="btn btn-ghost btn-xs px-1 hover:bg-slate-200/60 rounded">
                                                                 <FaFilter className={`text-[9px] ${columnFilters.unidadeNegocio.length > 0 ? 'text-indigo-600 font-bold' : 'text-slate-400'}`} />
                                                             </label>
-                                                            <ul tabIndex={0} className="dropdown-content menu p-3 shadow-lg bg-white border border-slate-200 rounded-xl w-60 z-[100] text-xs max-h-64 overflow-y-auto normal-case font-normal text-slate-700">
+                                                            <ul tabIndex={0} className="dropdown-content menu p-3 shadow-lg bg-white border border-slate-200 rounded-xl w-60 z-[100] text-xs normal-case font-normal text-slate-700">
                                                                 <div className="font-bold text-slate-500 mb-2 border-b pb-1 flex justify-between items-center">
                                                                     <span>Filtrar BU</span>
                                                                     {columnFilters.unidadeNegocio.length > 0 && (
                                                                         <button className="text-[10px] text-indigo-600 hover:underline" onClick={() => handleClearColumnFilter('unidadeNegocio')}>Limpar</button>
                                                                     )}
                                                                 </div>
-                                                                {getUniqueColumnValues('unidadeNegocio').map(val => (
-                                                                    <label key={val} className="flex items-center gap-2 py-1.5 hover:bg-slate-50 rounded cursor-pointer px-1">
-                                                                        <input
-                                                                            type="checkbox"
-                                                                            className="checkbox checkbox-xs checkbox-primary"
-                                                                            checked={columnFilters.unidadeNegocio.includes(val)}
-                                                                            onChange={() => handleToggleColumnFilter('unidadeNegocio', val)}
-                                                                        />
-                                                                        <span className="truncate">{val}</span>
-                                                                    </label>
-                                                                ))}
+                                                                <input
+                                                                    type="text"
+                                                                    placeholder="Buscar..."
+                                                                    className="input input-xs input-bordered w-full mb-2 bg-white text-slate-800 text-[11px] font-normal"
+                                                                    value={columnSearchQueries.unidadeNegocio}
+                                                                    onChange={(e) => setColumnSearchQueries(prev => ({ ...prev, unidadeNegocio: e.target.value }))}
+                                                                    onClick={(e) => e.stopPropagation()}
+                                                                />
+                                                                <div className="max-h-48 overflow-y-auto w-full">
+                                                                    {getUniqueColumnValues('unidadeNegocio')
+                                                                        .filter(val => String(val).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(
+                                                                            (columnSearchQueries.unidadeNegocio || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+                                                                        ))
+                                                                        .map(val => (
+                                                                            <label key={val} className="flex items-center gap-2 py-1.5 hover:bg-slate-50 rounded cursor-pointer px-1">
+                                                                                <input
+                                                                                    type="checkbox"
+                                                                                    className="checkbox checkbox-xs checkbox-primary"
+                                                                                    checked={columnFilters.unidadeNegocio.includes(val)}
+                                                                                    onChange={() => handleToggleColumnFilter('unidadeNegocio', val)}
+                                                                                />
+                                                                                <span className="truncate">{val}</span>
+                                                                            </label>
+                                                                        ))}
+                                                                </div>
                                                             </ul>
                                                         </div>
                                                     </div>
