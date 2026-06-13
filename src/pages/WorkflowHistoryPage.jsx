@@ -320,7 +320,7 @@ const WorkflowHistoryPage = () => {
     
     // Cabinet/Document Type Selection States
     const [typeSuggestions, setTypeSuggestions] = useState([]);
-    const [selectedDocType, setSelectedDocType] = useState('Encomendas Serviços');
+    const [selectedDocType, setSelectedDocType] = useState('Encomenda Serviços');
     
     // Date filter range state (default to 30 days ago to today)
     const getTodayString = () => new Date().toISOString().split('T')[0];
@@ -474,19 +474,19 @@ const WorkflowHistoryPage = () => {
                             String(a).localeCompare(String(b), undefined, { numeric: true, sensitivity: 'base' })
                         );
                         setTypeSuggestions(sortedValues);
-                        if (sortedValues.includes('Encomendas Serviços')) {
-                            setSelectedDocType('Encomendas Serviços');
+                        if (sortedValues.includes('Encomenda Serviços')) {
+                            setSelectedDocType('Encomenda Serviços');
                         } else if (sortedValues.length > 0) {
                             setSelectedDocType(sortedValues[0]);
                         }
                     } catch (err) {
                         console.error('Error fetching document type list:', err);
-                        setSelectedDocType('Encomendas Serviços');
-                        setTypeSuggestions(['Encomendas Serviços']);
+                        setSelectedDocType('Encomenda Serviços');
+                        setTypeSuggestions(['Encomenda Serviços']);
                     }
                 } else {
-                    setSelectedDocType('Encomendas Serviços');
-                    setTypeSuggestions(['Encomendas Serviços']);
+                    setSelectedDocType('Encomenda Serviços');
+                    setTypeSuggestions(['Encomenda Serviços']);
                 }
             } catch (err) {
                 console.error("Failed to load cabinet metadata", err);
