@@ -1986,18 +1986,7 @@ const WorkflowHistoryPage = () => {
                                                 <th className="py-3 px-2 text-left cursor-pointer hover:bg-slate-100 select-none transition-colors" onClick={() => handleSort('timeStoppedMs')}>
                                                     Tempo Parado {sortField === 'timeStoppedMs' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}
                                                 </th>
-                                                <th className="py-3 px-2 text-left cursor-pointer hover:bg-slate-100 select-none transition-colors" onClick={() => handleSort('prioridade')}>
-                                                    Prioridade {sortField === 'prioridade' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}
-                                                </th>
-                                                <th className="py-3 px-2 text-left cursor-pointer hover:bg-slate-100 select-none transition-colors" onClick={() => handleSort('formaPagamento')}>
-                                                    Forma de Pagamento {sortField === 'formaPagamento' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}
-                                                </th>
-                                                <th className="py-3 px-2 text-left cursor-pointer hover:bg-slate-100 select-none transition-colors" onClick={() => handleSort('valor')}>
-                                                    Valor {sortField === 'valor' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}
-                                                </th>
-                                                <th className="py-3 px-2 text-left">
-                                                    Comentários
-                                                </th>
+
                                                 <th className="py-3 px-1 text-center w-[38px]" title="Histórico">
                                                     <FaHistory className="mx-auto text-slate-400" />
                                                 </th>
@@ -2113,49 +2102,7 @@ const WorkflowHistoryPage = () => {
                                                             ) : '-'}
                                                         </td>
 
-                                                        {/* Prioridade */}
-                                                        <td className="py-3 px-2">
-                                                            {isProgLoading ? (
-                                                                <span className="inline-block w-12 h-3 bg-slate-100 animate-pulse rounded"></span>
-                                                            ) : (
-                                                                <div className="text-slate-600 text-xs truncate max-w-[65px]" title={getDocFieldValue(doc, 'PRIORIDADE') || '-'}>
-                                                                    {getDocFieldValue(doc, 'PRIORIDADE') || '-'}
-                                                                </div>
-                                                            )}
-                                                        </td>
 
-                                                        {/* Forma de Pagamento */}
-                                                        <td className="py-3 px-2">
-                                                            {isProgLoading ? (
-                                                                <span className="inline-block w-20 h-3 bg-slate-100 animate-pulse rounded"></span>
-                                                            ) : (
-                                                                <div className="text-slate-600 text-xs truncate max-w-[90px]" title={getDocFieldValue(doc, 'FORMA_DE_PAGAMENTO') || '-'}>
-                                                                    {getDocFieldValue(doc, 'FORMA_DE_PAGAMENTO') || '-'}
-                                                                </div>
-                                                            )}
-                                                        </td>
-
-                                                        {/* Valor */}
-                                                        <td className="py-3 px-2">
-                                                            {isProgLoading ? (
-                                                                <span className="inline-block w-16 h-3 bg-slate-100 animate-pulse rounded"></span>
-                                                            ) : (
-                                                                <div className="text-slate-600 text-xs font-semibold truncate max-w-[80px]" title={getDocFieldValue(doc, 'CHAMP_10') || '-'}>
-                                                                    {getDocFieldValue(doc, 'CHAMP_10') || '-'}
-                                                                </div>
-                                                            )}
-                                                        </td>
-
-                                                        {/* Comments */}
-                                                        <td className="py-3 px-2">
-                                                            {isProgLoading ? (
-                                                                <span className="inline-block w-16 h-3 bg-slate-100 animate-pulse rounded"></span>
-                                                            ) : (
-                                                                <div className="text-slate-600 text-xs truncate max-w-[85px]" title={getDocumentComments(doc) || '-'}>
-                                                                    {getDocumentComments(doc) || '-'}
-                                                                </div>
-                                                            )}
-                                                        </td>
 
                                                         {/* History */}
                                                         <td className="py-3 px-0.5 text-center w-[38px]">
