@@ -265,6 +265,21 @@ const getDocumentNumber = (doc) => {
     return '';
 };
 
+const getDocumentProject = (doc) => {
+    if (!doc) return '';
+    const fieldsToTry = [
+        'PROJECTO',
+        'PROJETO',
+        'PROJECT',
+        'PROJEKT'
+    ];
+    for (const f of fieldsToTry) {
+        const val = getDocFieldValue(doc, f);
+        if (val) return val;
+    }
+    return '';
+};
+
 const getDocumentValor = (doc) => {
     if (!doc) return '';
     return getDocFieldValue(doc, 'CHAMP_10') || getDocFieldValue(doc, 'VALOR_TOTAL') || getDocFieldValue(doc, 'MATRICULA') || '';
@@ -669,7 +684,7 @@ const WorkflowHistoryPage = () => {
                 valA = progA.activeTaskName || '';
                 valB = progB.activeTaskName || '';
             } else if (sortField === 'docNum') {
-                const getDocNum = (d) => getDocumentNumber(d);
+                const getDocNum = (d) => getDocumentProject(d);
                 valA = getDocNum(a);
                 valB = getDocNum(b);
             } else if (sortField === 'requerente') {
@@ -1618,7 +1633,7 @@ const WorkflowHistoryPage = () => {
     const handleExportDocumentsList = () => {
         try {
             const csvHeaders = [
-                'Documento',
+                'Projeto',
                 'ID DocuWare',
                 'Início',
                 'Status',
@@ -1635,7 +1650,7 @@ const WorkflowHistoryPage = () => {
 
             const rows = filteredAndSortedDocuments.map(doc => {
                 const prog = documentProgress[doc.Id] || {};
-                const docNum = getDocumentNumber(doc) || 'Sem Nº';
+                const docNum = getDocumentProject(doc) || 'Sem Projeto';
                 const comments = getDocumentComments(doc) || '';
                 const timeStopped = !prog.isFinished && prog.timeStoppedMs > 0
                     ? WorkflowHistoryAnalyzer.formatDuration(prog.timeStoppedMs)
@@ -1966,7 +1981,7 @@ const WorkflowHistoryPage = () => {
                                         <thead>
                                             <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 text-[10px] uppercase tracking-wider font-semibold">
                                                 <th className="py-3 px-2 text-left cursor-pointer hover:bg-slate-100 select-none transition-colors" onClick={() => handleSort('docNum')}>
-                                                    Documento {sortField === 'docNum' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}
+                                                    Projeto {sortField === 'docNum' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}
                                                 </th>
                                                 <th className="py-3 px-2 text-left cursor-pointer hover:bg-slate-100 select-none transition-colors" onClick={() => handleSort('entryDate')}>
                                                     Início {sortField === 'entryDate' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}
@@ -2002,7 +2017,7 @@ const WorkflowHistoryPage = () => {
                                                 const prog = documentProgress[doc.Id];
                                                 const isProgLoading = !prog;
 
-                                                const docNum = getDocumentNumber(doc) || 'Sem Nº';
+                                                const docNum = getDocumentProject(doc) || 'Sem Projeto';
                                                 const isDelayed = prog && !prog.isFinished && (prog.timeStoppedMs > 24 * 60 * 60 * 1000);
 
                                                 return (
