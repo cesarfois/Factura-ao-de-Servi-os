@@ -8,6 +8,8 @@ const TOKENS_FILE = path.join(__dirname, 'tokens.json');
 
 // Memory cache
 let cachedTokens = null;
+let refreshPromise = null;
+let serviceAccountPromise = null;
 
 export const tokenManager = {
     /**
@@ -80,58 +82,66 @@ export const tokenManager = {
      * Synchronized to prevent parallel refreshes.
      */
     refreshAccessToken: async () => {
-        if (!cachedTokens || !cachedTokens.refreshToken) {
-            console.warn('[TokenManager] No refresh token available. Trying Service Account...');
-            return await tokenManager.loginWithServiceAccount();
+        if (refreshPromise) {
+            console.log('[TokenManager] Token refresh already in progress. Reusing promise...');
+            return refreshPromise;
         }
 
-        console.log('[TokenManager] Refreshing token...');
+        refreshPromise = (async () => {
+            try {
+                if (!cachedTokens || !cachedTokens.refreshToken) {
+                    console.warn('[TokenManager] No refresh token available. Trying Service Account...');
+                    return await tokenManager.loginWithServiceAccount();
+                }
 
-        const params = new URLSearchParams();
-        params.append('grant_type', 'refresh_token');
-        params.append('refresh_token', cachedTokens.refreshToken);
-        params.append('client_id', process.env.VITE_DOCUWARE_CLIENT_ID || 'docuware.platform');
-        if (process.env.VITE_DOCUWARE_CLIENT_SECRET) {
-            params.append('client_secret', process.env.VITE_DOCUWARE_CLIENT_SECRET);
-        }
+                console.log('[TokenManager] Refreshing token...');
 
-        try {
-            // We need the token endpoint. Saved in tokens?
-            // If missing, we must discover it (hard without a base URL context unless saved)
-            // Ideally, we saved 'tokenEndpoint' in cachedTokens
-            const tokenEndpoint = cachedTokens.tokenEndpoint || 'https://login-emea.docuware.cloud/oauth/token';
+                const params = new URLSearchParams();
+                params.append('grant_type', 'refresh_token');
+                params.append('refresh_token', cachedTokens.refreshToken);
+                params.append('client_id', process.env.VITE_DOCUWARE_CLIENT_ID || 'docuware.platform');
+                if (process.env.VITE_DOCUWARE_CLIENT_SECRET) {
+                    params.append('client_secret', process.env.VITE_DOCUWARE_CLIENT_SECRET);
+                }
 
-            const response = await axios.post(tokenEndpoint, params, {
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-            });
+                const tokenEndpoint = cachedTokens.tokenEndpoint || 'https://login-emea.docuware.cloud/oauth/token';
 
-            const { access_token, refresh_token, expires_in } = response.data;
+                const response = await axios.post(tokenEndpoint, params, {
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+                });
 
-            // Update state
-            cachedTokens = {
-                ...cachedTokens,
-                token: access_token,
-                accessToken: access_token, // normalize
-                refreshToken: refresh_token || cachedTokens.refreshToken, // RT rotation usually happens
-                expiresAt: Date.now() + ((expires_in || 3600) * 1000),
-                updatedAt: new Date().toISOString()
-            };
+                const { access_token, refresh_token, expires_in } = response.data;
 
-            if (!(process.env.NETLIFY || process.env.VERCEL)) {
-                await fs.writeFile(TOKENS_FILE, JSON.stringify(cachedTokens, null, 2));
-            } else {
-                console.log('[TokenManager] Serverless environment: keeping refreshed tokens in memory.');
+                // Update state
+                cachedTokens = {
+                    ...cachedTokens,
+                    token: access_token,
+                    accessToken: access_token, // normalize
+                    refreshToken: refresh_token || cachedTokens.refreshToken, // RT rotation usually happens
+                    expiresAt: Date.now() + ((expires_in || 3600) * 1000),
+                    updatedAt: new Date().toISOString()
+                };
+
+                if (!(process.env.NETLIFY || process.env.VERCEL)) {
+                    await fs.writeFile(TOKENS_FILE, JSON.stringify(cachedTokens, null, 2));
+                } else {
+                    console.log('[TokenManager] Serverless environment: keeping refreshed tokens in memory.');
+                }
+                console.log('[TokenManager] Token refreshed successfully.');
+
+                return cachedTokens.token;
+
+            } catch (err) {
+                console.error('[TokenManager] Refresh failed:', err.response?.data || err.message);
+                // Fallback to Service Account on hard failure
+                console.warn('[TokenManager] Refresh failed. Attempting Service Account login...');
+                return await tokenManager.loginWithServiceAccount();
+            } finally {
+                refreshPromise = null;
             }
-            console.log('[TokenManager] Token refreshed successfully.');
+        })();
 
-            return cachedTokens.token;
-
-        } catch (err) {
-            console.error('[TokenManager] Refresh failed:', err.response?.data || err.message);
-            // Fallback to Service Account on hard failure
-            console.warn('[TokenManager] Refresh failed. Attempting Service Account login...');
-            return await tokenManager.loginWithServiceAccount();
-        }
+        return refreshPromise;
     },
 
     /**
@@ -139,73 +149,75 @@ export const tokenManager = {
      * This is the robust fallback for background tasks.
      */
     loginWithServiceAccount: async () => {
-        const username = process.env.DOCUWARE_USERNAME;
-        const password = process.env.DOCUWARE_PASSWORD;
-
-        if (!username || !password) {
-            throw new Error("Service Account credentials (DOCUWARE_USERNAME/PASSWORD) not configured in .env");
+        if (serviceAccountPromise) {
+            console.log('[TokenManager] Service Account login already in progress. Reusing promise...');
+            return serviceAccountPromise;
         }
 
-        console.log('[TokenManager] 🔄 Attempting Service Account Login...');
+        serviceAccountPromise = (async () => {
+            try {
+                const username = process.env.DOCUWARE_USERNAME;
+                const password = process.env.DOCUWARE_PASSWORD;
 
-        try {
-            // We need a Token Endpoint. 
-            // Since we might not have a session, we need a default one or discover it from a known Org URL?
-            // Problem: Multi-tenant URLs vary. 
-            // Solution: Use the hardcoded main endpoint if known, or rely on a configured Base URL in .env?
-            // Let's rely on cachedTokens.tokenEndpoint if available, OR a default EMEA one if empty. 
-            // Use Org-Specific Endpoint (Required for ROPC with docuware.platform.net.client)
-            const orgId = process.env.DOCUWARE_ORG_ID;
-            console.log(`[TokenManager] Service Login > Org ID: ${orgId}`);
-            let tokenEndpoint = 'https://login-emea.docuware.cloud/connect/token'; // Fallback
+                if (!username || !password) {
+                    throw new Error("Service Account credentials (DOCUWARE_USERNAME/PASSWORD) not configured in .env");
+                }
 
-            if (orgId) {
-                tokenEndpoint = `https://login-emea.docuware.cloud/${orgId}/connect/token`;
-            } else if (cachedTokens && cachedTokens.tokenEndpoint) {
-                tokenEndpoint = cachedTokens.tokenEndpoint;
+                console.log('[TokenManager] 🔄 Attempting Service Account Login...');
+
+                const orgId = process.env.DOCUWARE_ORG_ID;
+                console.log(`[TokenManager] Service Login > Org ID: ${orgId}`);
+                let tokenEndpoint = 'https://login-emea.docuware.cloud/connect/token'; // Fallback
+
+                if (orgId) {
+                    tokenEndpoint = `https://login-emea.docuware.cloud/${orgId}/connect/token`;
+                } else if (cachedTokens && cachedTokens.tokenEndpoint) {
+                    tokenEndpoint = cachedTokens.tokenEndpoint;
+                }
+
+                console.log(`[TokenManager] Using Token Endpoint: ${tokenEndpoint}`);
+
+                const params = new URLSearchParams();
+                params.append('grant_type', 'password');
+                params.append('username', username);
+                params.append('password', password);
+                params.append('client_id', 'docuware.platform.net.client');
+                params.append('scope', 'docuware.platform');
+
+                const response = await axios.post(tokenEndpoint, params, {
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+                });
+
+                const { access_token, refresh_token, expires_in } = response.data;
+
+                // Save new session
+                cachedTokens = {
+                    ...cachedTokens, // Keep other info like tokenEndpoint if possible
+                    token: access_token,
+                    accessToken: access_token,
+                    refreshToken: refresh_token,
+                    expiresAt: Date.now() + ((expires_in || 3600) * 1000),
+                    updatedAt: new Date().toISOString(),
+                    isServiceAccount: true
+                };
+
+                if (!(process.env.NETLIFY || process.env.VERCEL)) {
+                    await fs.writeFile(TOKENS_FILE, JSON.stringify(cachedTokens, null, 2));
+                } else {
+                    console.log('[TokenManager] Serverless environment: keeping service account tokens in memory.');
+                }
+                console.log('[TokenManager] ✅ Service Account Login Successful.');
+
+                return access_token;
+
+            } catch (error) {
+                console.error('[TokenManager] ❌ Service Account Login Failed:', error.response?.data || error.message);
+                throw error;
+            } finally {
+                serviceAccountPromise = null;
             }
+        })();
 
-            console.log(`[TokenManager] Using Token Endpoint: ${tokenEndpoint}`);
-
-            const params = new URLSearchParams();
-            params.append('grant_type', 'password');
-            params.append('username', username);
-            params.append('password', password);
-            // 'docuware.platform.net.client' is required for ROPC (Public Client)
-            params.append('client_id', 'docuware.platform.net.client');
-            // Public clients (docuware.platform) do not use client_secret
-            // params.append('client_secret', ''); 
-            params.append('scope', 'docuware.platform');
-
-            const response = await axios.post(tokenEndpoint, params, {
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-            });
-
-            const { access_token, refresh_token, expires_in } = response.data;
-
-            // Save new session
-            cachedTokens = {
-                ...cachedTokens, // Keep other info like tokenEndpoint if possible
-                token: access_token,
-                accessToken: access_token,
-                refreshToken: refresh_token,
-                expiresAt: Date.now() + ((expires_in || 3600) * 1000),
-                updatedAt: new Date().toISOString(),
-                isServiceAccount: true
-            };
-
-            if (!(process.env.NETLIFY || process.env.VERCEL)) {
-                await fs.writeFile(TOKENS_FILE, JSON.stringify(cachedTokens, null, 2));
-            } else {
-                console.log('[TokenManager] Serverless environment: keeping service account tokens in memory.');
-            }
-            console.log('[TokenManager] ✅ Service Account Login Successful.');
-
-            return access_token;
-
-        } catch (error) {
-            console.error('[TokenManager] ❌ Service Account Login Failed:', error.response?.data || error.message);
-            throw error;
-        }
+        return serviceAccountPromise;
     }
 };

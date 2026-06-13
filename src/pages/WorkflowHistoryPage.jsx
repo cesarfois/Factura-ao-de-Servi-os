@@ -514,6 +514,7 @@ const WorkflowHistoryPage = () => {
                 setDetectedDateField(detectedDateField);
                 setSuggestions({}); // Reset suggestions
 
+                let docType = 'Encomenda Serviços';
                 if (detectedTypeField) {
                     try {
                         const values = await docuwareService.getSelectList(selectedCabinet, detectedTypeField.DBFieldName || detectedTypeField.FieldName);
@@ -522,19 +523,21 @@ const WorkflowHistoryPage = () => {
                         );
                         setTypeSuggestions(sortedValues);
                         if (sortedValues.includes('Encomenda Serviços')) {
-                            setSelectedDocType('Encomenda Serviços');
+                            docType = 'Encomenda Serviços';
                         } else if (sortedValues.length > 0) {
-                            setSelectedDocType(sortedValues[0]);
+                            docType = sortedValues[0];
                         }
                     } catch (err) {
                         console.error('Error fetching document type list:', err);
-                        setSelectedDocType('Encomenda Serviços');
                         setTypeSuggestions(['Encomenda Serviços']);
                     }
                 } else {
-                    setSelectedDocType('Encomenda Serviços');
                     setTypeSuggestions(['Encomenda Serviços']);
                 }
+                setSelectedDocType(docType);
+
+                // Call search once with the resolved values directly!
+                handleSearchDocuments(null, selectedCabinet, detectedTypeField, detectedDateField, docType);
             } catch (err) {
                 console.error("Failed to load cabinet metadata", err);
             }
@@ -1354,9 +1357,10 @@ const WorkflowHistoryPage = () => {
     };
 
     // Handle Search for Cabinet Documents
-    const handleSearchDocuments = async (e) => {
-        if (e) e.preventDefault();
-        if (!selectedCabinet) return;
+    const handleSearchDocuments = async (e, cabinetIdOverride = null, typeFieldOverride = null, dateFieldOverride = null, docTypeOverride = null) => {
+        if (e && e.preventDefault) e.preventDefault();
+        const cabinet = cabinetIdOverride || selectedCabinet;
+        if (!cabinet) return;
 
         const searchId = ++latestSearchIdRef.current;
 
@@ -1388,24 +1392,29 @@ const WorkflowHistoryPage = () => {
         try {
             const queryFilters = [];
 
+            const typeField = typeFieldOverride !== null ? typeFieldOverride : detectedTypeField;
+            const docType = docTypeOverride !== null ? docTypeOverride : selectedDocType;
+
             // 1. Add selected Tipo Documental filter
-            if (detectedTypeField && selectedDocType) {
+            if (typeField && docType) {
                 queryFilters.push({
-                    fieldName: detectedTypeField.DBFieldName || detectedTypeField.FieldName,
-                    value: selectedDocType
+                    fieldName: typeField.DBFieldName || typeField.FieldName,
+                    value: docType
                 });
             }
 
+            const dateField = dateFieldOverride !== null ? dateFieldOverride : detectedDateField;
+
             // 2. Add dynamic Date Range filter
-            if (detectedDateField) {
+            if (dateField) {
                 queryFilters.push({
-                    fieldName: detectedDateField.DBFieldName || detectedDateField.FieldName,
+                    fieldName: dateField.DBFieldName || dateField.FieldName,
                     value: [dateRange[0] || '1900-01-01', dateRange[1] || '2099-12-31']
                 });
             }
 
-            console.log(`Searching documents in cabinet ${selectedCabinet} with filters:`, queryFilters);
-            const response = await docuwareService.searchDocuments(selectedCabinet, queryFilters, 10000);
+            console.log(`Searching documents in cabinet ${cabinet} with filters:`, queryFilters);
+            const response = await docuwareService.searchDocuments(cabinet, queryFilters, 10000);
             
             if (latestSearchIdRef.current !== searchId) {
                 console.log('[Search] Ignoring outdated search results.');
@@ -1434,13 +1443,6 @@ const WorkflowHistoryPage = () => {
             }
         }
     };
-
-    // Auto-load on mount when cabinet fields and type suggestion default are resolved
-    useEffect(() => {
-        if (selectedCabinet && detectedTypeField && detectedDateField && selectedDocType) {
-            handleSearchDocuments();
-        }
-    }, [selectedCabinet, detectedTypeField, detectedDateField, selectedDocType]);
 
     // Triggered when a document row is clicked
     const handleSelectDocument = async (doc, initialSubTab = 'timeline', openDrawer = true) => {

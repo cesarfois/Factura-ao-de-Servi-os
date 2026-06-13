@@ -47,6 +47,20 @@ api.interceptors.request.use(
     }
 );
 
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+    failedQueue.forEach((prom) => {
+        if (error) {
+            prom.reject(error);
+        } else {
+            prom.resolve(token);
+        }
+    });
+    failedQueue = [];
+};
+
 // Add response interceptor to handle 401 and session-expired 500 errors
 api.interceptors.response.use(
     (response) => response,
@@ -59,42 +73,77 @@ api.interceptors.response.use(
             error.response?.data?.error?.includes?.('X-Target-URL');
 
         if ((is401 || isSessionExpired500) && !originalRequest._retry) {
-            originalRequest._retry = true;
-            console.warn('[api.js] Session error detected. Attempting token refresh...');
-            try {
-                // Dynamically import to avoid circular dependency
-                const { authService } = await import('./authService.js');
-                const newToken = await authService.refreshToken();
-                originalRequest.headers['Authorization'] = `Bearer ${newToken}`;
-
-                // Re-read auth data to restore x-target-url (may have been missing)
-                const authData = sessionStorage.getItem('docuware_auth');
-                if (authData) {
-                    try {
-                        const parsed = JSON.parse(authData);
-                        if (parsed.url) originalRequest.headers['x-target-url'] = parsed.url;
-                    } catch (_) { }
-                }
-
-                return api(originalRequest);
-            } catch (refreshError) {
-                if (window.location.pathname.startsWith('/workflow-diagram')) {
-                    console.warn('[api.js] Falha ao atualizar. Tentando re-autenticar conta de serviço...');
-                    try {
-                        const { authService } = await import('./authService.js');
-                        const saAuth = await authService.loginWithServiceAccount();
-                        originalRequest.headers['Authorization'] = `Bearer ${saAuth.token}`;
-                        originalRequest.headers['x-target-url'] = saAuth.url;
+            if (isRefreshing) {
+                return new Promise((resolve, reject) => {
+                    failedQueue.push({ resolve, reject });
+                })
+                    .then((token) => {
+                        originalRequest.headers['Authorization'] = `Bearer ${token}`;
+                        // Re-read auth data to restore x-target-url (may have been missing)
+                        const authData = sessionStorage.getItem('docuware_auth');
+                        if (authData) {
+                            try {
+                                const parsed = JSON.parse(authData);
+                                if (parsed.url) originalRequest.headers['x-target-url'] = parsed.url;
+                            } catch (_) { }
+                        }
                         return api(originalRequest);
-                    } catch (saErr) {
-                        console.error('[api.js] Falha crítica na conta de serviço:', saErr);
-                        return Promise.reject(saErr);
-                    }
-                }
-                console.error('[api.js] Token refresh failed. Redirecting to login.');
-                window.location.href = '/login';
-                return Promise.reject(refreshError);
+                    })
+                    .catch((err) => {
+                        return Promise.reject(err);
+                    });
             }
+
+            originalRequest._retry = true;
+            isRefreshing = true;
+
+            console.warn('[api.js] Session error detected. Attempting token refresh...');
+            return new Promise((resolve, reject) => {
+                (async () => {
+                    try {
+                        // Dynamically import to avoid circular dependency
+                        const { authService } = await import('./authService.js');
+                        const newToken = await authService.refreshToken();
+                        originalRequest.headers['Authorization'] = `Bearer ${newToken}`;
+
+                        // Re-read auth data to restore x-target-url (may have been missing)
+                        const authData = sessionStorage.getItem('docuware_auth');
+                        if (authData) {
+                            try {
+                                const parsed = JSON.parse(authData);
+                                if (parsed.url) originalRequest.headers['x-target-url'] = parsed.url;
+                            } catch (_) { }
+                        }
+
+                        processQueue(null, newToken);
+                        resolve(api(originalRequest));
+                    } catch (refreshError) {
+                        if (window.location.pathname.startsWith('/workflow-diagram')) {
+                            console.warn('[api.js] Falha ao atualizar. Tentando re-autenticar conta de serviço...');
+                            try {
+                                const { authService } = await import('./authService.js');
+                                const saAuth = await authService.loginWithServiceAccount();
+                                originalRequest.headers['Authorization'] = `Bearer ${saAuth.token}`;
+                                originalRequest.headers['x-target-url'] = saAuth.url;
+                                processQueue(null, saAuth.token);
+                                resolve(api(originalRequest));
+                                return;
+                            } catch (saErr) {
+                                console.error('[api.js] Falha crítica na conta de serviço:', saErr);
+                                processQueue(saErr, null);
+                                reject(saErr);
+                                return;
+                            }
+                        }
+                        console.error('[api.js] Token refresh failed. Redirecting to login.');
+                        processQueue(refreshError, null);
+                        window.location.href = '/login';
+                        reject(refreshError);
+                    } finally {
+                        isRefreshing = false;
+                    }
+                })();
+            });
         }
 
         return Promise.reject(error);
