@@ -1974,9 +1974,7 @@ const WorkflowHistoryPage = () => {
                                                 <th className="py-3 px-2 text-left cursor-pointer hover:bg-slate-100 select-none transition-colors" onClick={() => handleSort('percent')}>
                                                     Progresso {sortField === 'percent' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}
                                                 </th>
-                                                <th className="py-3 px-2 text-left cursor-pointer hover:bg-slate-100 select-none transition-colors" onClick={() => handleSort('requerente')}>
-                                                    Requerente {sortField === 'requerente' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}
-                                                </th>
+
                                                 <th className="py-3 px-2 text-left cursor-pointer hover:bg-slate-100 select-none transition-colors" onClick={() => handleSort('activeTaskName')}>
                                                     Etapa Atual {sortField === 'activeTaskName' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}
                                                 </th>
@@ -2052,12 +2050,7 @@ const WorkflowHistoryPage = () => {
                                                             )}
                                                         </td>
 
-                                                        {/* Requerente */}
-                                                        <td className="py-3 px-2">
-                                                            <div className="font-medium text-slate-700 text-xs truncate max-w-[100px]" title={getDocFieldValue(doc, 'REQUERENTE') || '-'}>
-                                                                {getDocFieldValue(doc, 'REQUERENTE') ? getDocFieldValue(doc, 'REQUERENTE').split('@')[0] : '-'}
-                                                            </div>
-                                                        </td>
+
 
                                                         {/* Active Task */}
                                                         <td className="py-3 px-2">
