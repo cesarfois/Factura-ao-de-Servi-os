@@ -54,20 +54,29 @@ export const WorkflowTimelineEngine = {
         });
 
         const isEndNode = (type, name) => {
-            const t = (type || '').toLowerCase();
+            const t = (type || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
             const n = (name || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+            
+            if (t.includes('condition') || t.includes('condicao') || t.includes('decision') || 
+                t.includes('assignment') || t.includes('atribuir') || t.includes('webservice') || 
+                t.includes('email') || t.includes('mail') || t.includes('notification')) {
+                return false;
+            }
+            
             if (t.includes('end') || t.includes('fim')) return true;
+            
             return n === 'end' || 
                    n.startsWith('end ') || 
                    n.endsWith(' end') || 
                    n.includes(' end ') ||
-                   n.startsWith('fim') ||
+                   n.startsWith('fim') || 
                    n.includes(' fim') ||
                    n.includes('concluid') || 
                    n.includes('termin') || 
                    n.includes('conclusao') ||
-                   n.includes('cancelad') ||
-                   n.includes('reprovad');
+                   n === 'reprovado' || n === 'reprovada' || 
+                   n === 'cancelado' || n === 'cancelada' || 
+                   n === 'recusado' || n === 'recusada';
         };
 
         // Match a step in the history to a node in the definition

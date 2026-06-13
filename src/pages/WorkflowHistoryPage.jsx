@@ -51,8 +51,14 @@ const isWorkflowStartNode = (node) => {
 
 const isWorkflowEndNode = (node) => {
     if (!node) return false;
-    const type = (node.type || '').toLowerCase();
+    const type = (node.type || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
     const name = (node.name || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+    
+    if (type.includes('condition') || type.includes('condicao') || type.includes('decision') || 
+        type.includes('assignment') || type.includes('atribuir') || type.includes('webservice') || 
+        type.includes('email') || type.includes('mail') || type.includes('notification')) {
+        return false;
+    }
     
     if (type.includes('end') || type.includes('fim')) return true;
     
@@ -60,13 +66,14 @@ const isWorkflowEndNode = (node) => {
            name.startsWith('end ') || 
            name.endsWith(' end') || 
            name.includes(' end ') ||
-           name.startsWith('fim') ||
+           name.startsWith('fim') || 
            name.includes(' fim') ||
            name.includes('concluid') || 
            name.includes('termin') || 
            name.includes('conclusao') ||
-           name.includes('cancelad') ||
-           name.includes('reprovad');
+           name === 'reprovado' || name === 'reprovada' || 
+           name === 'cancelado' || name === 'cancelada' || 
+           name === 'recusado' || name === 'recusada';
 };
 
 const isWorkflowAssignmentNode = (node) => {
@@ -111,7 +118,8 @@ const isWorkflowTechnicalNode = (node) => {
            name.includes('email') || name.includes('mail') || name.includes('aviso') || name.includes('notificacao') || 
            name.includes('notificar') || name.includes('mensagem') || name.includes('alerta') ||
            name.includes('data time') || name.includes('date time') || name.includes('datetime') ||
-           name.includes('data hora') || name.includes('data/hora') || name.includes('datahora');
+           name.includes('data hora') || name.includes('data/hora') || name.includes('datahora') ||
+           name.includes('reprovad') || name.includes('cancelad') || name.includes('recusad');
 };
 
 // Helper to find shortest path task count from start node to end node using BFS
@@ -126,24 +134,32 @@ const getRemainingTaskCount = (nodes, edges, startNodeId) => {
     
     const isEndNode = (n) => {
         if (!n) return false;
-        const type = (n.type || '').toLowerCase();
+        const type = (n.type || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
         const name = (n.name || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
         const hasOutgoing = edges.some(e => e.source === n.id);
         
         if (!hasOutgoing) return true;
+        
+        if (type.includes('condition') || type.includes('condicao') || type.includes('decision') || 
+            type.includes('assignment') || type.includes('atribuir') || type.includes('webservice') || 
+            type.includes('email') || type.includes('mail') || type.includes('notification')) {
+            return false;
+        }
+        
         if (type.includes('end') || type.includes('fim')) return true;
         
         return name === 'end' || 
                name.startsWith('end ') || 
                name.endsWith(' end') || 
                name.includes(' end ') ||
-               name.startsWith('fim') ||
+               name.startsWith('fim') || 
                name.includes(' fim') ||
                name.includes('concluid') || 
                name.includes('termin') || 
                name.includes('conclusao') ||
-               name.includes('cancelad') ||
-               name.includes('reprovad');
+               name === 'reprovado' || name === 'reprovada' || 
+               name === 'cancelado' || name === 'cancelada' || 
+               name === 'recusado' || name === 'recusada';
     };
     
     let minTasks = null;
@@ -923,26 +939,34 @@ const WorkflowHistoryPage = () => {
                             const edges = merged.edges || [];
                             
                             const isEndNode = (n) => {
-                                 if (!n) return false;
-                                 const type = (n.type || '').toLowerCase();
-                                 const name = (n.name || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
-                                 const hasOutgoing = edges.some(e => e.source === n.id);
-                                 
-                                 if (!hasOutgoing) return true;
-                                 if (type.includes('end') || type.includes('fim')) return true;
-                                 
-                                 return name === 'end' || 
-                                        name.startsWith('end ') || 
-                                        name.endsWith(' end') || 
-                                        name.includes(' end ') ||
-                                        name.startsWith('fim') ||
-                                        name.includes(' fim') ||
-                                        name.includes('concluid') || 
-                                        name.includes('termin') || 
-                                        name.includes('conclusao') ||
-                                        name.includes('cancelad') ||
-                                        name.includes('reprovad');
-                             };
+                                if (!n) return false;
+                                const type = (n.type || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+                                const name = (n.name || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+                                const hasOutgoing = edges.some(e => e.source === n.id);
+                                
+                                if (!hasOutgoing) return true;
+                                
+                                if (type.includes('condition') || type.includes('condicao') || type.includes('decision') || 
+                                    type.includes('assignment') || type.includes('atribuir') || type.includes('webservice') || 
+                                    type.includes('email') || type.includes('mail') || type.includes('notification')) {
+                                    return false;
+                                }
+                                
+                                if (type.includes('end') || type.includes('fim')) return true;
+                                
+                                return name === 'end' || 
+                                       name.startsWith('end ') || 
+                                       name.endsWith(' end') || 
+                                       name.includes(' end ') ||
+                                       name.startsWith('fim') || 
+                                       name.includes(' fim') ||
+                                       name.includes('concluid') || 
+                                       name.includes('termin') || 
+                                       name.includes('conclusao') ||
+                                       name === 'reprovado' || name === 'reprovada' ||
+                                       name === 'cancelado' || name === 'cancelada' || 
+                                       name === 'recusado' || name === 'recusada';
+                            };
                             
                             const endNode = nodes.find(isEndNode);
                             isFinished = endNode && endNode.status === 'completed';
