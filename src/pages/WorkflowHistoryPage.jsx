@@ -36,7 +36,7 @@ const isTaskType = (typeStr) => {
     if (t.includes('start') || t.includes('inicio')) return false;
     if (t.includes('end') || t.includes('fim') || t.includes('concluid') || t.includes('termin')) return false;
     if (t.includes('condition') || t.includes('condicao') || t.includes('decision') || t.includes('condicionar')) return false;
-    if (t.includes('assignment') || t.includes('atribuirdados') || t.includes('atribuir')) return false;
+    if ((t.includes('assignment') || t.includes('atribuirdados') || t.includes('atribuir')) && !t.includes('user')) return false;
     if (t.includes('webservice') || t.includes('web')) return false;
     if (t.includes('email') || t.includes('mail') || t.includes('notification') || t.includes('notificacao')) return false;
     return true;
@@ -1096,7 +1096,7 @@ const WorkflowHistoryPage = () => {
                                 [doc.Id]: {
                                     percent: 0,
                                     remaining: 0,
-                                    statusText: 'Erro',
+                                    statusText: 'Sem Fluxo',
                                     activeTaskName: '',
                                     isFinished: false,
                                     loading: false,
