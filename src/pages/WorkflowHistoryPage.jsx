@@ -2012,10 +2012,10 @@ const WorkflowHistoryPage = () => {
                                                     Enc. Primavera {sortField === 'encPrimavera' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}
                                                 </th>
                                                 <th className="py-3 px-2 text-left cursor-pointer hover:bg-slate-100 select-none transition-colors" onClick={() => handleSort('unidadeNegocio')}>
-                                                    Unidade Negócio {sortField === 'unidadeNegocio' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}
+                                                    BU {sortField === 'unidadeNegocio' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}
                                                 </th>
                                                 <th className="py-3 px-2 text-left cursor-pointer hover:bg-slate-100 select-none transition-colors" onClick={() => handleSort('codEmpresa')}>
-                                                    Cód. Empresa {sortField === 'codEmpresa' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}
+                                                    Nome Fiscal {sortField === 'codEmpresa' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}
                                                 </th>
 
                                                 <th className="py-3 px-1 text-center w-[38px]" title="Histórico">
