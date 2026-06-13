@@ -373,6 +373,14 @@ const WorkflowHistoryPage = () => {
     const [sortDirection, setSortDirection] = useState('desc');
     const [filterStep, setFilterStep] = useState('all');
     const [filterResponsible, setFilterResponsible] = useState('all');
+    const [columnFilters, setColumnFilters] = useState({
+        docNum: [],
+        activeTaskName: [],
+        responsible: [],
+        codEmpresa: [],
+        encPrimavera: [],
+        unidadeNegocio: []
+    });
     
     // Document Grid / List States
     const [documents, setDocuments] = useState([]);
@@ -670,6 +678,14 @@ const WorkflowHistoryPage = () => {
             // Responsible Filter
             if (filterResponsible !== 'all' && prog.responsible !== filterResponsible && !(prog.responsible && prog.responsible.includes(filterResponsible))) return false;
 
+            // Excel-like Column Filters
+            if (columnFilters.docNum && columnFilters.docNum.length > 0 && !columnFilters.docNum.includes(getDocumentProject(doc) || 'Sem Projeto')) return false;
+            if (columnFilters.activeTaskName && columnFilters.activeTaskName.length > 0 && !columnFilters.activeTaskName.includes(prog.activeTaskName || '-')) return false;
+            if (columnFilters.responsible && columnFilters.responsible.length > 0 && !columnFilters.responsible.includes(prog.responsible || '-')) return false;
+            if (columnFilters.codEmpresa && columnFilters.codEmpresa.length > 0 && !columnFilters.codEmpresa.includes(getDocFieldValue(doc, 'CODIGO_DE_EMPRESA') || '-')) return false;
+            if (columnFilters.encPrimavera && columnFilters.encPrimavera.length > 0 && !columnFilters.encPrimavera.includes(getDocFieldValue(doc, 'NO_PRIMAVERA_ENC_CLIENTE') || '-')) return false;
+            if (columnFilters.unidadeNegocio && columnFilters.unidadeNegocio.length > 0 && !columnFilters.unidadeNegocio.includes(getDocFieldValue(doc, 'UNIDADE_DE_NEG_CIO') || '-')) return false;
+
             return true;
         });
 
@@ -751,7 +767,51 @@ const WorkflowHistoryPage = () => {
         });
 
         return result;
-    }, [documents, documentProgress, quickFilter, filterStep, filterResponsible, sortField, sortDirection]);
+    }, [documents, documentProgress, quickFilter, filterStep, filterResponsible, sortField, sortDirection, columnFilters]);
+
+    // Helpers to manage Excel-like column filters
+    const getUniqueColumnValues = (field) => {
+        const vals = new Set();
+        documents.forEach(doc => {
+            const prog = documentProgress[doc.Id];
+            if (field === 'docNum') {
+                vals.add(getDocumentProject(doc) || 'Sem Projeto');
+            } else if (field === 'activeTaskName') {
+                if (prog) vals.add(prog.activeTaskName || '-');
+            } else if (field === 'responsible') {
+                if (prog) vals.add(prog.responsible || '-');
+            } else if (field === 'codEmpresa') {
+                vals.add(getDocFieldValue(doc, 'CODIGO_DE_EMPRESA') || '-');
+            } else if (field === 'encPrimavera') {
+                vals.add(getDocFieldValue(doc, 'NO_PRIMAVERA_ENC_CLIENTE') || '-');
+            } else if (field === 'unidadeNegocio') {
+                vals.add(getDocFieldValue(doc, 'UNIDADE_DE_NEG_CIO') || '-');
+            }
+        });
+        return Array.from(vals).filter(v => v !== undefined && v !== null && v !== '').sort((a, b) => 
+            String(a).localeCompare(String(b), 'pt-BR', { numeric: true, sensitivity: 'base' })
+        );
+    };
+
+    const handleToggleColumnFilter = (field, value) => {
+        setColumnFilters(prev => {
+            const current = prev[field] || [];
+            const next = current.includes(value)
+                ? current.filter(v => v !== value)
+                : [...current, value];
+            return {
+                ...prev,
+                [field]: next
+            };
+        });
+    };
+
+    const handleClearColumnFilter = (field) => {
+        setColumnFilters(prev => ({
+            ...prev,
+            [field]: []
+        }));
+    };
 
     // Pipeline visual steps aggregated for the cockpit
     const flowPipelineSteps = useMemo(() => {
@@ -1300,6 +1360,14 @@ const WorkflowHistoryPage = () => {
         setHistoryInstances(null);
         setDocumentProgress({});
         setQuickFilter('all');
+        setColumnFilters({
+            docNum: [],
+            activeTaskName: [],
+            responsible: [],
+            codEmpresa: [],
+            encPrimavera: [],
+            unidadeNegocio: []
+        });
 
         try {
             const queryFilters = [];
@@ -2014,7 +2082,33 @@ const WorkflowHistoryPage = () => {
                                         <thead>
                                             <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 text-[10px] uppercase tracking-wider font-semibold">
                                                 <th className="py-3 px-2 text-left cursor-pointer hover:bg-slate-100 select-none transition-colors" onClick={() => handleSort('docNum')}>
-                                                    Projeto {sortField === 'docNum' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}
+                                                    <div className="flex items-center justify-between gap-1">
+                                                        <span>Projeto {sortField === 'docNum' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}</span>
+                                                        <div className="dropdown dropdown-bottom dropdown-end" onClick={(e) => e.stopPropagation()}>
+                                                            <label tabIndex={0} className="btn btn-ghost btn-xs px-1 hover:bg-slate-200/60 rounded">
+                                                                <FaFilter className={`text-[9px] ${columnFilters.docNum.length > 0 ? 'text-indigo-600 font-bold' : 'text-slate-400'}`} />
+                                                            </label>
+                                                            <ul tabIndex={0} className="dropdown-content menu p-3 shadow-lg bg-white border border-slate-200 rounded-xl w-60 z-[100] text-xs max-h-64 overflow-y-auto normal-case font-normal text-slate-700">
+                                                                <div className="font-bold text-slate-500 mb-2 border-b pb-1 flex justify-between items-center">
+                                                                    <span>Filtrar Projeto</span>
+                                                                    {columnFilters.docNum.length > 0 && (
+                                                                        <button className="text-[10px] text-indigo-600 hover:underline" onClick={() => handleClearColumnFilter('docNum')}>Limpar</button>
+                                                                    )}
+                                                                </div>
+                                                                {getUniqueColumnValues('docNum').map(val => (
+                                                                    <label key={val} className="flex items-center gap-2 py-1.5 hover:bg-slate-50 rounded cursor-pointer px-1">
+                                                                        <input
+                                                                            type="checkbox"
+                                                                            className="checkbox checkbox-xs checkbox-primary"
+                                                                            checked={columnFilters.docNum.includes(val)}
+                                                                            onChange={() => handleToggleColumnFilter('docNum', val)}
+                                                                        />
+                                                                        <span className="truncate">{val}</span>
+                                                                    </label>
+                                                                ))}
+                                                            </ul>
+                                                        </div>
+                                                    </div>
                                                 </th>
                                                 <th className="py-3 px-2 text-left cursor-pointer hover:bg-slate-100 select-none transition-colors" onClick={() => handleSort('entryDate')}>
                                                     Início {sortField === 'entryDate' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}
@@ -2024,22 +2118,152 @@ const WorkflowHistoryPage = () => {
                                                 </th>
 
                                                 <th className="py-3 px-2 text-left cursor-pointer hover:bg-slate-100 select-none transition-colors" onClick={() => handleSort('activeTaskName')}>
-                                                    Etapa Atual {sortField === 'activeTaskName' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}
+                                                    <div className="flex items-center justify-between gap-1">
+                                                        <span>Etapa Atual {sortField === 'activeTaskName' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}</span>
+                                                        <div className="dropdown dropdown-bottom dropdown-end" onClick={(e) => e.stopPropagation()}>
+                                                            <label tabIndex={0} className="btn btn-ghost btn-xs px-1 hover:bg-slate-200/60 rounded">
+                                                                <FaFilter className={`text-[9px] ${columnFilters.activeTaskName.length > 0 ? 'text-indigo-600 font-bold' : 'text-slate-400'}`} />
+                                                            </label>
+                                                            <ul tabIndex={0} className="dropdown-content menu p-3 shadow-lg bg-white border border-slate-200 rounded-xl w-60 z-[100] text-xs max-h-64 overflow-y-auto normal-case font-normal text-slate-700">
+                                                                <div className="font-bold text-slate-500 mb-2 border-b pb-1 flex justify-between items-center">
+                                                                    <span>Filtrar Etapa</span>
+                                                                    {columnFilters.activeTaskName.length > 0 && (
+                                                                        <button className="text-[10px] text-indigo-600 hover:underline" onClick={() => handleClearColumnFilter('activeTaskName')}>Limpar</button>
+                                                                    )}
+                                                                </div>
+                                                                {getUniqueColumnValues('activeTaskName').map(val => (
+                                                                    <label key={val} className="flex items-center gap-2 py-1.5 hover:bg-slate-50 rounded cursor-pointer px-1">
+                                                                        <input
+                                                                            type="checkbox"
+                                                                            className="checkbox checkbox-xs checkbox-primary"
+                                                                            checked={columnFilters.activeTaskName.includes(val)}
+                                                                            onChange={() => handleToggleColumnFilter('activeTaskName', val)}
+                                                                        />
+                                                                        <span className="truncate">{val}</span>
+                                                                    </label>
+                                                                ))}
+                                                            </ul>
+                                                        </div>
+                                                    </div>
                                                 </th>
                                                 <th className="py-3 px-2 text-left cursor-pointer hover:bg-slate-100 select-none transition-colors" onClick={() => handleSort('responsible')}>
-                                                    Responsável {sortField === 'responsible' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}
+                                                    <div className="flex items-center justify-between gap-1">
+                                                        <span>Responsável {sortField === 'responsible' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}</span>
+                                                        <div className="dropdown dropdown-bottom dropdown-end" onClick={(e) => e.stopPropagation()}>
+                                                            <label tabIndex={0} className="btn btn-ghost btn-xs px-1 hover:bg-slate-200/60 rounded">
+                                                                <FaFilter className={`text-[9px] ${columnFilters.responsible.length > 0 ? 'text-indigo-600 font-bold' : 'text-slate-400'}`} />
+                                                            </label>
+                                                            <ul tabIndex={0} className="dropdown-content menu p-3 shadow-lg bg-white border border-slate-200 rounded-xl w-60 z-[100] text-xs max-h-64 overflow-y-auto normal-case font-normal text-slate-700">
+                                                                <div className="font-bold text-slate-500 mb-2 border-b pb-1 flex justify-between items-center">
+                                                                    <span>Filtrar Responsável</span>
+                                                                    {columnFilters.responsible.length > 0 && (
+                                                                        <button className="text-[10px] text-indigo-600 hover:underline" onClick={() => handleClearColumnFilter('responsible')}>Limpar</button>
+                                                                    )}
+                                                                </div>
+                                                                {getUniqueColumnValues('responsible').map(val => (
+                                                                    <label key={val} className="flex items-center gap-2 py-1.5 hover:bg-slate-50 rounded cursor-pointer px-1">
+                                                                        <input
+                                                                            type="checkbox"
+                                                                            className="checkbox checkbox-xs checkbox-primary"
+                                                                            checked={columnFilters.responsible.includes(val)}
+                                                                            onChange={() => handleToggleColumnFilter('responsible', val)}
+                                                                        />
+                                                                        <span className="truncate">{val}</span>
+                                                                    </label>
+                                                                ))}
+                                                            </ul>
+                                                        </div>
+                                                    </div>
                                                 </th>
                                                 <th className="py-3 px-2 text-left cursor-pointer hover:bg-slate-100 select-none transition-colors" onClick={() => handleSort('timeStoppedMs')}>
                                                     Tempo Parado {sortField === 'timeStoppedMs' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}
                                                 </th>
                                                 <th className="py-3 px-2 text-left cursor-pointer hover:bg-slate-100 select-none transition-colors" onClick={() => handleSort('codEmpresa')}>
-                                                    Nome Fiscal {sortField === 'codEmpresa' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}
+                                                    <div className="flex items-center justify-between gap-1">
+                                                        <span>Nome Fiscal {sortField === 'codEmpresa' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}</span>
+                                                        <div className="dropdown dropdown-bottom dropdown-end" onClick={(e) => e.stopPropagation()}>
+                                                            <label tabIndex={0} className="btn btn-ghost btn-xs px-1 hover:bg-slate-200/60 rounded">
+                                                                <FaFilter className={`text-[9px] ${columnFilters.codEmpresa.length > 0 ? 'text-indigo-600 font-bold' : 'text-slate-400'}`} />
+                                                            </label>
+                                                            <ul tabIndex={0} className="dropdown-content menu p-3 shadow-lg bg-white border border-slate-200 rounded-xl w-60 z-[100] text-xs max-h-64 overflow-y-auto normal-case font-normal text-slate-700">
+                                                                <div className="font-bold text-slate-500 mb-2 border-b pb-1 flex justify-between items-center">
+                                                                    <span>Filtrar Nome Fiscal</span>
+                                                                    {columnFilters.codEmpresa.length > 0 && (
+                                                                        <button className="text-[10px] text-indigo-600 hover:underline" onClick={() => handleClearColumnFilter('codEmpresa')}>Limpar</button>
+                                                                    )}
+                                                                </div>
+                                                                {getUniqueColumnValues('codEmpresa').map(val => (
+                                                                    <label key={val} className="flex items-center gap-2 py-1.5 hover:bg-slate-50 rounded cursor-pointer px-1">
+                                                                        <input
+                                                                            type="checkbox"
+                                                                            className="checkbox checkbox-xs checkbox-primary"
+                                                                            checked={columnFilters.codEmpresa.includes(val)}
+                                                                            onChange={() => handleToggleColumnFilter('codEmpresa', val)}
+                                                                        />
+                                                                        <span className="truncate">{val}</span>
+                                                                    </label>
+                                                                ))}
+                                                            </ul>
+                                                        </div>
+                                                    </div>
                                                 </th>
                                                 <th className="py-3 px-2 text-left cursor-pointer hover:bg-slate-100 select-none transition-colors" onClick={() => handleSort('encPrimavera')}>
-                                                    Enc. Primavera {sortField === 'encPrimavera' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}
+                                                    <div className="flex items-center justify-between gap-1">
+                                                        <span>Enc. Primavera {sortField === 'encPrimavera' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}</span>
+                                                        <div className="dropdown dropdown-bottom dropdown-end" onClick={(e) => e.stopPropagation()}>
+                                                            <label tabIndex={0} className="btn btn-ghost btn-xs px-1 hover:bg-slate-200/60 rounded">
+                                                                <FaFilter className={`text-[9px] ${columnFilters.encPrimavera.length > 0 ? 'text-indigo-600 font-bold' : 'text-slate-400'}`} />
+                                                            </label>
+                                                            <ul tabIndex={0} className="dropdown-content menu p-3 shadow-lg bg-white border border-slate-200 rounded-xl w-60 z-[100] text-xs max-h-64 overflow-y-auto normal-case font-normal text-slate-700">
+                                                                <div className="font-bold text-slate-500 mb-2 border-b pb-1 flex justify-between items-center">
+                                                                    <span>Filtrar Enc. Primavera</span>
+                                                                    {columnFilters.encPrimavera.length > 0 && (
+                                                                        <button className="text-[10px] text-indigo-600 hover:underline" onClick={() => handleClearColumnFilter('encPrimavera')}>Limpar</button>
+                                                                    )}
+                                                                </div>
+                                                                {getUniqueColumnValues('encPrimavera').map(val => (
+                                                                    <label key={val} className="flex items-center gap-2 py-1.5 hover:bg-slate-50 rounded cursor-pointer px-1">
+                                                                        <input
+                                                                            type="checkbox"
+                                                                            className="checkbox checkbox-xs checkbox-primary"
+                                                                            checked={columnFilters.encPrimavera.includes(val)}
+                                                                            onChange={() => handleToggleColumnFilter('encPrimavera', val)}
+                                                                        />
+                                                                        <span className="truncate">{val}</span>
+                                                                    </label>
+                                                                ))}
+                                                            </ul>
+                                                        </div>
+                                                    </div>
                                                 </th>
                                                 <th className="py-3 px-2 text-left cursor-pointer hover:bg-slate-100 select-none transition-colors" onClick={() => handleSort('unidadeNegocio')}>
-                                                    BU {sortField === 'unidadeNegocio' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}
+                                                    <div className="flex items-center justify-between gap-1">
+                                                        <span>BU {sortField === 'unidadeNegocio' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}</span>
+                                                        <div className="dropdown dropdown-bottom dropdown-end" onClick={(e) => e.stopPropagation()}>
+                                                            <label tabIndex={0} className="btn btn-ghost btn-xs px-1 hover:bg-slate-200/60 rounded">
+                                                                <FaFilter className={`text-[9px] ${columnFilters.unidadeNegocio.length > 0 ? 'text-indigo-600 font-bold' : 'text-slate-400'}`} />
+                                                            </label>
+                                                            <ul tabIndex={0} className="dropdown-content menu p-3 shadow-lg bg-white border border-slate-200 rounded-xl w-60 z-[100] text-xs max-h-64 overflow-y-auto normal-case font-normal text-slate-700">
+                                                                <div className="font-bold text-slate-500 mb-2 border-b pb-1 flex justify-between items-center">
+                                                                    <span>Filtrar BU</span>
+                                                                    {columnFilters.unidadeNegocio.length > 0 && (
+                                                                        <button className="text-[10px] text-indigo-600 hover:underline" onClick={() => handleClearColumnFilter('unidadeNegocio')}>Limpar</button>
+                                                                    )}
+                                                                </div>
+                                                                {getUniqueColumnValues('unidadeNegocio').map(val => (
+                                                                    <label key={val} className="flex items-center gap-2 py-1.5 hover:bg-slate-50 rounded cursor-pointer px-1">
+                                                                        <input
+                                                                            type="checkbox"
+                                                                            className="checkbox checkbox-xs checkbox-primary"
+                                                                            checked={columnFilters.unidadeNegocio.includes(val)}
+                                                                            onChange={() => handleToggleColumnFilter('unidadeNegocio', val)}
+                                                                        />
+                                                                        <span className="truncate">{val}</span>
+                                                                    </label>
+                                                                ))}
+                                                            </ul>
+                                                        </div>
+                                                    </div>
                                                 </th>
 
                                                 <th className="py-3 px-1 text-center w-[38px]" title="Histórico">
