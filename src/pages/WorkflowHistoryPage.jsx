@@ -2008,14 +2008,14 @@ const WorkflowHistoryPage = () => {
                                                 <th className="py-3 px-2 text-left cursor-pointer hover:bg-slate-100 select-none transition-colors" onClick={() => handleSort('timeStoppedMs')}>
                                                     Tempo Parado {sortField === 'timeStoppedMs' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}
                                                 </th>
+                                                <th className="py-3 px-2 text-left cursor-pointer hover:bg-slate-100 select-none transition-colors" onClick={() => handleSort('codEmpresa')}>
+                                                    Nome Fiscal {sortField === 'codEmpresa' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}
+                                                </th>
                                                 <th className="py-3 px-2 text-left cursor-pointer hover:bg-slate-100 select-none transition-colors" onClick={() => handleSort('encPrimavera')}>
                                                     Enc. Primavera {sortField === 'encPrimavera' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}
                                                 </th>
                                                 <th className="py-3 px-2 text-left cursor-pointer hover:bg-slate-100 select-none transition-colors" onClick={() => handleSort('unidadeNegocio')}>
                                                     BU {sortField === 'unidadeNegocio' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}
-                                                </th>
-                                                <th className="py-3 px-2 text-left cursor-pointer hover:bg-slate-100 select-none transition-colors" onClick={() => handleSort('codEmpresa')}>
-                                                    Nome Fiscal {sortField === 'codEmpresa' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}
                                                 </th>
 
                                                 <th className="py-3 px-1 text-center w-[38px]" title="Histórico">
@@ -2128,6 +2128,11 @@ const WorkflowHistoryPage = () => {
                                                              ) : '-'}
                                                          </td>
 
+                                                         {/* Cód. Empresa */}
+                                                         <td className="py-3 px-2 text-slate-600 text-xs truncate max-w-[120px]" title={getDocFieldValue(doc, 'CODIGO_DE_EMPRESA') || '-'}>
+                                                             {getDocFieldValue(doc, 'CODIGO_DE_EMPRESA') || '-'}
+                                                         </td>
+
                                                          {/* Enc. Primavera */}
                                                          <td className="py-3 px-2 text-slate-600 text-xs font-mono">
                                                              {getDocFieldValue(doc, 'NO_PRIMAVERA_ENC_CLIENTE') || '-'}
@@ -2136,11 +2141,6 @@ const WorkflowHistoryPage = () => {
                                                          {/* Unidade Negócio */}
                                                          <td className="py-3 px-2 text-slate-600 text-xs truncate max-w-[120px]" title={getDocFieldValue(doc, 'UNIDADE_DE_NEG_CIO') || '-'}>
                                                              {getDocFieldValue(doc, 'UNIDADE_DE_NEG_CIO') || '-'}
-                                                         </td>
-
-                                                         {/* Cód. Empresa */}
-                                                         <td className="py-3 px-2 text-slate-600 text-xs truncate max-w-[120px]" title={getDocFieldValue(doc, 'CODIGO_DE_EMPRESA') || '-'}>
-                                                             {getDocFieldValue(doc, 'CODIGO_DE_EMPRESA') || '-'}
                                                          </td>
 
                                                         {/* History */}
