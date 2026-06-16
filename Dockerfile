@@ -45,6 +45,7 @@ COPY proxy-server.js ./
 COPY docker-server.js ./
 COPY scheduler.js ./
 COPY tokenManager.js ./
+COPY wfd_definitions ./wfd_definitions
 
 # Create empty data files and create exports directory
 RUN echo "[]" > schedules.json && echo "[]" > history.json && echo "{}" > tokens.json && mkdir -p exports
