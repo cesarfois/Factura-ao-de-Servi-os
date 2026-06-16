@@ -4,7 +4,8 @@ import axios from 'axios';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const TOKENS_FILE = path.join(__dirname, 'tokens.json');
+const DATA_DIR = process.env.DATA_DIR || __dirname;
+const TOKENS_FILE = path.join(DATA_DIR, 'tokens.json');
 
 // Memory cache
 let cachedTokens = null;

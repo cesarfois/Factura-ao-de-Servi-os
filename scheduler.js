@@ -8,8 +8,9 @@ import { tokenManager } from './tokenManager.js';
 import sql from 'mssql';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const SCHEDULES_FILE = path.join(__dirname, 'schedules.json');
-const HISTORY_FILE = path.join(__dirname, 'history.json');
+const DATA_DIR = process.env.DATA_DIR || __dirname;
+const SCHEDULES_FILE = path.join(DATA_DIR, 'schedules.json');
+const HISTORY_FILE = path.join(DATA_DIR, 'history.json');
 const HISTORY_TMP_FILE = HISTORY_FILE + '.tmp';
 const EXPORTS_DIR = path.join(__dirname, 'exports');
 

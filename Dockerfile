@@ -47,8 +47,8 @@ COPY scheduler.js ./
 COPY tokenManager.js ./
 COPY wfd_definitions ./wfd_definitions
 
-# Create empty data files and create exports directory
-RUN echo "[]" > schedules.json && echo "[]" > history.json && echo "{}" > tokens.json && mkdir -p exports
+# Create exports directory
+RUN mkdir -p exports
 
 # Runtime variables (used by proxy-server.js, tokenManager.js, scheduler.js)
 ARG VITE_DOCUWARE_CLIENT_ID

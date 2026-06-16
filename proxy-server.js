@@ -10,11 +10,32 @@ import { fileURLToPath } from 'url';
 const app = express();
 const PORT = 3001;
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const DATA_DIR = process.env.DATA_DIR || __dirname;
 const EXPORTS_DIR = path.join(__dirname, 'exports');
-const WFD_DIR = path.join(__dirname, 'wfd_definitions');
+const WFD_DIR = path.join(DATA_DIR, 'wfd_definitions');
+const SCHEDULES_FILE = path.join(DATA_DIR, 'schedules.json');
 
 if (!(process.env.NETLIFY || process.env.VERCEL)) {
-    fs.mkdir(WFD_DIR, { recursive: true }).catch((error) => {
+    fs.mkdir(WFD_DIR, { recursive: true }).then(async () => {
+        try {
+            const defaultDir = path.join(__dirname, 'wfd_definitions');
+            if (defaultDir !== WFD_DIR) {
+                const defaultFiles = await fs.readdir(defaultDir).catch(() => []);
+                for (const file of defaultFiles) {
+                    const destFile = path.join(WFD_DIR, file);
+                    try {
+                        await fs.access(destFile);
+                    } catch {
+                        const srcFile = path.join(defaultDir, file);
+                        await fs.copyFile(srcFile, destFile);
+                        console.log(`[WFD] Copied default definition: ${file}`);
+                    }
+                }
+            }
+        } catch (copyErr) {
+            console.warn(`[WFD] Non-fatal error copying default definitions: ${copyErr.message}`);
+        }
+    }).catch((error) => {
         console.error(`[WFD] Failed to ensure wfd_definitions directory: ${error.message}`);
     });
 }
@@ -721,12 +742,7 @@ app.post('/api/schedules/import', express.json(), async (req, res) => {
         const newSchedules = importedSchedules.filter(s => !existingIds.has(s.id));
         const mergedSchedules = [...existingSchedules, ...newSchedules];
 
-        // Save and restart tasks
-        const fs = await import('fs/promises');
-        const path = await import('path');
-        const { fileURLToPath } = await import('url');
-        const __dirname = path.dirname(fileURLToPath(import.meta.url));
-        const SCHEDULES_FILE = path.join(__dirname, 'schedules.json');
+
 
         await fs.writeFile(SCHEDULES_FILE, JSON.stringify(mergedSchedules, null, 2));
 

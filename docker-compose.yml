@@ -17,14 +17,12 @@ services:
       - "3006:3001"
     volumes:
       - ./exports:/app/exports
-      - ./wfd_definitions:/app/wfd_definitions
-      - ./schedules.json:/app/schedules.json
-      - ./history.json:/app/history.json
-      - ./tokens.json:/app/tokens.json
+      - ./data:/app/data
     environment:
       - NODE_ENV=production
       - PORT=3001
       - DEV=true
+      - DATA_DIR=/app/data
       - VITE_DOCUWARE_CLIENT_ID=${VITE_DOCUWARE_CLIENT_ID}
       - VITE_DOCUWARE_CLIENT_SECRET=${VITE_DOCUWARE_CLIENT_SECRET}
       - VITE_DOCUWARE_REDIRECT_URI=${VITE_DOCUWARE_REDIRECT_URI}
