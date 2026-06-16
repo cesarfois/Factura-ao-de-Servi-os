@@ -982,7 +982,7 @@ const WorkflowHistoryPage = () => {
                                 window._wfdPromises = window._wfdPromises || {};
                                 if (!window._wfdPromises[instance.WorkflowId]) {
                                     window._wfdPromises[instance.WorkflowId] = (async () => {
-                                        let def = await workflowAnalyticsService.getWfdDefinition(instance.WorkflowId);
+                                        let def = await workflowAnalyticsService.getWfdDefinition(instance.WorkflowId, instance.Name);
                                         if (!def) {
                                             const savedWfdStr = localStorage.getItem(`wfd_def_${instance.WorkflowId}`);
                                             if (savedWfdStr) {
@@ -1298,7 +1298,7 @@ const WorkflowHistoryPage = () => {
                 if (defs[workflowId]) continue; // already loaded
 
                 // Try server first
-                let parsed = await workflowAnalyticsService.getWfdDefinition(workflowId);
+                let parsed = await workflowAnalyticsService.getWfdDefinition(workflowId, inst.Name);
                 
                 // Fallback to localStorage
                 if (!parsed) {

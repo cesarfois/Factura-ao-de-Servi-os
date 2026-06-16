@@ -133,7 +133,7 @@ const WorkflowDiagramPage = () => {
                 if (defs[workflowId]) continue; // already loaded
 
                 // Try server first
-                let parsed = await workflowAnalyticsService.getWfdDefinition(workflowId);
+                let parsed = await workflowAnalyticsService.getWfdDefinition(workflowId, inst.Name);
                 
                 // Fallback to localStorage
                 if (!parsed) {

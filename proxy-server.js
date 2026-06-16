@@ -748,15 +748,77 @@ app.post('/api/schedules/import', express.json(), async (req, res) => {
     }
 });
 
+function normalizeWorkflowName(name) {
+    if (!name) return '';
+    return name
+        .toLowerCase()
+        // 1. Remove accents
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        // 2. Remove terms like (Antigo) or -CGO-
+        .replace(/\(antigo\)/g, '')
+        .replace(/-cgo-/g, '')
+        // 3. Remove version patterns like v40, v1, v12, v3.2, etc.
+        .replace(/\b(v\d+(\.\d+)?|version\s*\d+)\b/g, '')
+        // 4. Remove special characters and punctuation
+        .replace(/[^a-z0-9]/g, ' ')
+        // 5. Clean up extra spaces
+        .trim()
+        .replace(/\s+/g, ' ');
+}
+
 // GET /api/wfd/:workflowId
 app.get('/api/wfd/:workflowId', async (req, res) => {
     try {
         const { workflowId } = req.params;
         const filePath = path.join(WFD_DIR, `${workflowId}.json`);
-        const content = await fs.readFile(filePath, 'utf8');
-        res.json(JSON.parse(content));
+        try {
+            const content = await fs.readFile(filePath, 'utf8');
+            return res.json(JSON.parse(content));
+        } catch (readErr) {
+            // File not found directly, try smart match by name
+            const targetName = req.query.name;
+            if (!targetName) {
+                return res.status(404).json({ error: 'WFD not found and no name provided for matching' });
+            }
+
+            console.log(`[WFD] Exact definition not found for workflowId: ${workflowId}. Attempting smart match for name: "${targetName}"`);
+            
+            const files = await fs.readdir(WFD_DIR);
+            const jsonFiles = files.filter(f => f.toLowerCase().endsWith('.json') && f !== `${workflowId}.json`);
+
+            const normalizedTarget = normalizeWorkflowName(targetName);
+            if (!normalizedTarget) {
+                return res.status(404).json({ error: 'WFD not found (empty target name after normalization)' });
+            }
+
+            for (const file of jsonFiles) {
+                try {
+                    const fPath = path.join(WFD_DIR, file);
+                    const fileContent = await fs.readFile(fPath, 'utf8');
+                    const definition = JSON.parse(fileContent);
+                    if (definition && definition.name) {
+                        const normalizedDefName = normalizeWorkflowName(definition.name);
+                        if (normalizedDefName === normalizedTarget) {
+                            console.log(`[WFD] Match found! "${definition.name}" (${file}) matches "${targetName}". Auto-caching definition to ${workflowId}.json`);
+                            
+                            // Auto-caching: copy the definition to the new workflowId
+                            const newFilePath = path.join(WFD_DIR, `${workflowId}.json`);
+                            await fs.writeFile(newFilePath, JSON.stringify(definition, null, 2), 'utf8');
+                            return res.json(definition);
+                        }
+                    }
+                } catch (parseErr) {
+                    console.warn(`[WFD] Failed to read/parse file ${file} during matching: ${parseErr.message}`);
+                }
+            }
+
+            console.warn(`[WFD] No matching definition found for normalized name: "${normalizedTarget}"`);
+            return res.status(404).json({ error: 'WFD definition not found by name match' });
+        }
     } catch (err) {
-        res.status(404).json({ error: 'WFD not found' });
+        console.error(`[WFD] Error in GET /api/wfd/:workflowId:`, err.message);
+        res.status(500).json({ error: err.message });
     }
 });
 
